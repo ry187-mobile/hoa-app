@@ -910,7 +910,7 @@ const EventsScreen = ({ user }) => {
 };
 
 // Modern RequestsScreen with Firestore integration
-const RequestsScreen = () => {
+const RequestsScreen = ({ user }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1002,24 +1002,26 @@ const RequestsScreen = () => {
         </View>
       </View>
       <Text style={styles.requestModernDate}>{item.date}</Text>
+      {/* Add type display here */}
+      <Text style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>Type: {item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'General'}</Text>
       <Text style={styles.requestModernDescription}>{item.description}</Text>
-      
       {/* Action Buttons */}
       <View style={styles.requestActionButtons}>
-        <TouchableOpacity 
-          style={[styles.requestStatusButton, { backgroundColor: item.status === 'Pending' ? '#4CAF50' : '#FF9800' }]} 
-          onPress={() => handleUpdateStatus(item.id, item.status)}
-        >
-          <Ionicons 
-            name={item.status === 'Pending' ? 'checkmark-circle-outline' : 'time-outline'} 
-            size={16} 
-            color="#fff" 
-          />
-          <Text style={styles.requestStatusButtonText}>
-            {item.status === 'Pending' ? 'Mark Resolved' : 'Mark Pending'}
-          </Text>
-        </TouchableOpacity>
-        
+        {user?.role === 'admin' && (
+          <TouchableOpacity 
+            style={[styles.requestStatusButton, { backgroundColor: item.status === 'Pending' ? '#4CAF50' : '#FF9800' }]} 
+            onPress={() => handleUpdateStatus(item.id, item.status)}
+          >
+            <Ionicons 
+              name={item.status === 'Pending' ? 'checkmark-circle-outline' : 'time-outline'} 
+              size={16} 
+              color="#fff" 
+            />
+            <Text style={styles.requestStatusButtonText}>
+              {item.status === 'Pending' ? 'Mark Resolved' : 'Mark Pending'}
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.requestDeleteButton} onPress={() => handleDeleteRequest(item.id)}>
           <Ionicons name="trash-outline" size={20} color="#fff" />
         </TouchableOpacity>
@@ -1329,7 +1331,7 @@ const AnnouncementsScreen = ({ user }) => {
 // Add modern styles for announcements
 
 
-const MembersScreen = () => {
+const MembersScreen = ({ user }) => {
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [members, setMembers] = useState([]);
@@ -1426,10 +1428,19 @@ const MembersScreen = () => {
             <Ionicons name="home-outline" size={14} color="#666" />
             <Text style={styles.homeNumber}>{item.homeNumber}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}> 
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
+        {/* Admin-only activate/deactivate button */}
+        {user?.role === 'admin' && (
+          <TouchableOpacity
+            style={{ marginTop: 8, alignSelf: 'flex-start', backgroundColor: item.status === 'active' ? '#FF9800' : '#4CAF50', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 14 }}
+            onPress={() => updateMember(item.id, { status: item.status === 'active' ? 'inactive' : 'active' })}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>{item.status === 'active' ? 'Set Inactive' : 'Set Active'}</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <TouchableOpacity style={styles.contactButton}>
         <Ionicons name="mail-outline" size={20} color="#2196F3" />
@@ -1566,13 +1577,13 @@ const MainTabs = ({ route }) => {
         {props => <TabSlideWrapper index={1} {...props}><EventsScreen {...props} user={user} /></TabSlideWrapper>}
       </Tab.Screen>
       <Tab.Screen name="Requests">
-        {props => <TabSlideWrapper index={2} {...props}><RequestsScreen {...props} /></TabSlideWrapper>}
+        {props => <TabSlideWrapper index={2} {...props}><RequestsScreen {...props} user={user} /></TabSlideWrapper>}
       </Tab.Screen>
       <Tab.Screen name="Announcements">
         {props => <TabSlideWrapper index={3} {...props}><AnnouncementsScreen {...props} user={user} /></TabSlideWrapper>}
       </Tab.Screen>
       <Tab.Screen name="Members">
-        {props => <TabSlideWrapper index={4} {...props}><MembersScreen {...props} /></TabSlideWrapper>}
+        {props => <TabSlideWrapper index={4} {...props}><MembersScreen {...props} user={user} /></TabSlideWrapper>}
       </Tab.Screen>
     </Tab.Navigator>
   );
