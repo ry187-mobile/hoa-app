@@ -1441,6 +1441,14 @@ const MembersScreen = ({ user }) => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  // In MembersScreen, add state for add member modal
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [newMemberFirstName, setNewMemberFirstName] = useState('');
+  const [newMemberLastName, setNewMemberLastName] = useState('');
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberHomeNumber, setNewMemberHomeNumber] = useState('');
+  const [newMemberPhoneNumber, setNewMemberPhoneNumber] = useState('');
+  const [newMemberAddress, setNewMemberAddress] = useState('');
 
   const filtered = members.filter(member => {
     const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
@@ -1512,6 +1520,29 @@ const MembersScreen = ({ user }) => {
     }
   };
 
+  const handleDeleteMember = async (memberId, memberName) => {
+    Alert.alert(
+      'Delete Member',
+      `Are you sure you want to delete ${memberName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'members', memberId));
+              fetchMembers();
+              Alert.alert('Success', 'Member deleted successfully');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete member: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   useEffect(() => {
     fetchMembers();
   }, []);
@@ -1519,6 +1550,8 @@ const MembersScreen = ({ user }) => {
   const getStatusColor = (status) => {
     return status === 'active' ? '#4CAF50' : '#FF9800';
   };
+
+
 
   const renderMember = ({ item }) => (
     <View style={styles.memberCard}>
@@ -1577,11 +1610,60 @@ const MembersScreen = ({ user }) => {
           </TouchableOpacity>
         )}
       </View>
+      <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
       <TouchableOpacity style={styles.contactButton}>
         <Ionicons name="mail-outline" size={20} color="#2196F3" />
       </TouchableOpacity>
+
+    </View>
+        {/* Admin-only delete button */}
+        {user?.role === 'admin' && (
+          <TouchableOpacity 
+            style={styles.memberDeleteButton}
+            onPress={() => handleDeleteMember(item.id, `${item.firstName} ${item.lastName}`)}
+          >
+            <Ionicons name="trash-outline" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
+
+  // Add function to handle adding new member
+  const handleAddMember = async () => {
+    if (!newMemberFirstName || !newMemberLastName || !newMemberEmail || !newMemberHomeNumber) {
+      Alert.alert('Error', 'Please fill in all required fields (First Name, Last Name, Email, Home Number)');
+      return;
+    }
+    
+    try {
+      await addDoc(collection(db, 'members'), {
+        firstName: newMemberFirstName,
+        lastName: newMemberLastName,
+        email: newMemberEmail,
+        homeNumber: newMemberHomeNumber,
+        phoneNumber: newMemberPhoneNumber || '',
+        address: newMemberAddress || '',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        role: 'user'
+      });
+      
+      setShowAddMemberModal(false);
+      setNewMemberFirstName('');
+      setNewMemberLastName('');
+      setNewMemberEmail('');
+      setNewMemberHomeNumber('');
+      setNewMemberPhoneNumber('');
+      setNewMemberAddress('');
+      
+      fetchMembers();
+      Alert.alert('Success', 'Member added successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add member: ' + error.message);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1590,7 +1672,10 @@ const MembersScreen = ({ user }) => {
           <Text style={styles.membersTitle}>Community Members</Text>
           <Text style={styles.membersSubtitle}>{filtered.length} members found</Text>
         </View>
-        <TouchableOpacity style={styles.addMemberButton}>
+        <TouchableOpacity 
+          style={styles.addMemberButton} 
+          onPress={() => setShowAddMemberModal(true)}
+        >
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -1650,6 +1735,97 @@ const MembersScreen = ({ user }) => {
           </View>
         }
       />
+      {/* Add Member Modal (admin only) */}
+      {user?.role === 'admin' && (
+        <Modal visible={showAddMemberModal} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.registerModal}>
+              <Text style={styles.gmailModalTitle}>Add New Member</Text>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>First Name *</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newMemberFirstName}
+                  onChangeText={setNewMemberFirstName}
+                  placeholder="Enter first name"
+                />
+              </View>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Last Name *</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newMemberLastName}
+                  onChangeText={setNewMemberLastName}
+                  placeholder="Enter last name"
+                />
+              </View>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Email *</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newMemberEmail}
+                  onChangeText={setNewMemberEmail}
+                  placeholder="Enter email address"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Home Number *</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newMemberHomeNumber}
+                  onChangeText={setNewMemberHomeNumber}
+                  placeholder="Enter home number"
+                />
+              </View>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newMemberPhoneNumber}
+                  onChangeText={setNewMemberPhoneNumber}
+                  placeholder="Enter phone number"
+                  keyboardType="phone-pad"
+                />
+              </View>
+              
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Address</Text>
+                <TextInput
+                  style={[styles.gmailInput, { height: 60, textAlignVertical: 'top' }]}
+                  value={newMemberAddress}
+                  onChangeText={setNewMemberAddress}
+                  placeholder="Enter address"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+              
+              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddMember}>
+                <Text style={styles.gmailCreateButtonText}>Add Member</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                setShowAddMemberModal(false);
+                setNewMemberFirstName('');
+                setNewMemberLastName('');
+                setNewMemberEmail('');
+                setNewMemberHomeNumber('');
+                setNewMemberPhoneNumber('');
+                setNewMemberAddress('');
+              }}>
+                <Text style={styles.gmailSignInText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };
@@ -2974,5 +3150,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 4,
+  },
+  memberDeleteButton: {
+    backgroundColor: '#f44336',
+    borderRadius: 16,
+    padding: 8,
+    marginTop: 8,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
