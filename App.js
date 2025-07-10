@@ -38,9 +38,9 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
   }, [navigation]);
 
   // Calculate dashboard data from real requests
-  const openIssues = requests.filter(request => request.status === 'Pending').length;
-  const upcomingEvents = events.length;
-  
+const openIssues = requests.filter(request => request.status === 'Pending').length;
+const upcomingEvents = events.length;
+
   // Get recent requests (latest 3) and format them for display
   const recentIssues = requests.slice(0, 3).map(request => ({
     id: request.id,
@@ -59,6 +59,53 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
       default: return '#9E9E9E'; // Gray for unknown status
     }
   }
+
+  // In DashboardScreen, add state for announcements
+  const [announcements, setAnnouncements] = useState([]);
+
+  // Add real-time listener for announcements with debugging
+  useEffect(() => {
+    const announcementsRef = collection(db, 'announcements');
+    const q = query(announcementsRef, orderBy('date', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('Dashboard: Fetched announcements:', data.length, data);
+      setAnnouncements(data);
+    }, (error) => {
+      console.error('Error listening to announcements:', error);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Remove the old fetchAnnouncements function and its calls
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  // Refresh data when screen comes into focus (only for requests now)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchRequests();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // Function to get priority color for announcements
+  function getAnnouncementPriorityColor(priority) {
+    switch (priority) {
+      case 'high': return '#f44336';
+      case 'medium': return '#ff9800';
+      case 'low': return '#4caf50';
+      default: return '#9E9E9E';
+    }
+  }
+
+  // Add debugging for recentAnnouncements calculation
+  const recentAnnouncements = announcements?.slice(0, 3) || [];
+  console.log('Dashboard: Recent announcements to display:', recentAnnouncements.length, recentAnnouncements);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,6 +153,33 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
             <View style={styles.dashboardIssueCardModern}>
               <Text style={styles.dashboardIssueTitleModern}>No recent issues</Text>
               <Text style={styles.dashboardIssueMetaModern}>All requests are up to date</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Recent Announcements */}
+        <View style={styles.dashboardSectionModern}>
+          <Text style={styles.dashboardSectionTitleModern}>Recent Announcements</Text>
+          {recentAnnouncements.length > 0 ? (
+            recentAnnouncements.map(announcement => (
+              <TouchableOpacity 
+                key={announcement.id} 
+                style={styles.dashboardIssueCardModern}
+                onPress={() => navigation.navigate('Announcements')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.dashboardIssueDotModern, { backgroundColor: getAnnouncementPriorityColor(announcement.priority) }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.dashboardIssueTitleModern}>{announcement.title}</Text>
+                  <Text style={styles.dashboardIssueMetaModern}>
+                    {announcement.date} • {announcement.priority}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.dashboardIssueCardModern}>
+              <Text style={styles.dashboardIssueTitleModern}>No recent announcements</Text>
             </View>
           )}
         </View>
@@ -206,6 +280,7 @@ const LoginScreen = ({ navigation }) => {
   const [registerLastName, setRegisterLastName] = useState('');
   const [registerHomeNumber, setRegisterHomeNumber] = useState('');
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState('');
+  const [registerAddress, setRegisterAddress] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   // OTP state for Gmail verification
   const [otpSent, setOtpSent] = useState(false);
@@ -318,7 +393,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    if (!registerEmail || !registerPassword || !registerFirstName || !registerLastName || !registerHomeNumber || !registerPhoneNumber) {
+    if (!registerEmail || !registerPassword || !registerFirstName || !registerLastName || !registerHomeNumber || !registerPhoneNumber || !registerAddress) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -350,6 +425,7 @@ const LoginScreen = ({ navigation }) => {
           status: 'active',
           avatar: '', // You can collect or generate an avatar if needed
           phoneNumber: registerPhoneNumber,
+          address: registerAddress,
           createdAt: new Date().toISOString(),
           role: 'user' // Add this line to set default role
         });
@@ -367,7 +443,10 @@ const LoginScreen = ({ navigation }) => {
           firstName: registerFirstName,
           lastName: registerLastName,
           email: registerEmail,
-          role: userRole
+          role: userRole,
+          phoneNumber: registerPhoneNumber,
+          homeNumber: registerHomeNumber,
+          address: registerAddress
         };
         setCurrentUser(userData);
         
@@ -379,6 +458,7 @@ const LoginScreen = ({ navigation }) => {
         setRegisterLastName('');
         setRegisterHomeNumber('');
         setRegisterPhoneNumber('');
+        setRegisterAddress('');
         
         // Navigate to MainTabs with user data
         navigation.navigate('MainTabs', { user: userData });
@@ -406,11 +486,17 @@ const LoginScreen = ({ navigation }) => {
         let userRole = 'user';
         let firstName = 'User';
         let lastName = '';
+        let phoneNumber = '';
+        let homeNumber = '';
+        let address = '';
         if (!querySnapshot.empty) {
           const data = querySnapshot.docs[0].data();
           userRole = data.role || 'user';
           firstName = data.firstName || 'User';
           lastName = data.lastName || '';
+          phoneNumber = data.phoneNumber || '';
+          homeNumber = data.homeNumber || '';
+          address = data.address || '';
         } else if (userCredential.user.displayName) {
           firstName = userCredential.user.displayName.split(' ')[0];
           lastName = userCredential.user.displayName.split(' ').slice(1).join(' ');
@@ -420,7 +506,10 @@ const LoginScreen = ({ navigation }) => {
           firstName,
           lastName,
           email: userCredential.user.email,
-          role: userRole
+          role: userRole,
+          phoneNumber,
+          homeNumber,
+          address
         };
         setCurrentUser(userData);
         navigation.navigate('MainTabs', { user: userData });
@@ -616,6 +705,17 @@ const LoginScreen = ({ navigation }) => {
               />
             </View>
             <View style={styles.gmailInputGroup}>
+              <Text style={styles.gmailInputLabel}>Address</Text>
+              <TextInput
+                style={styles.gmailInput}
+                placeholder="Enter your address"
+                value={registerAddress}
+                onChangeText={setRegisterAddress}
+                multiline
+                numberOfLines={2}
+              />
+            </View>
+            <View style={styles.gmailInputGroup}>
               <Text style={styles.gmailInputLabel}>Password</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TextInput
@@ -660,6 +760,7 @@ const LoginScreen = ({ navigation }) => {
               setRegisterLastName('');
               setRegisterHomeNumber('');
               setRegisterPhoneNumber('');
+              setRegisterAddress('');
             }}>
               <Text style={styles.gmailSignInText}>Already have an account? <Text style={{ color: '#1a73e8', fontWeight: 'bold' }}>Sign in</Text></Text>
             </TouchableOpacity>
@@ -758,9 +859,11 @@ const EventsScreen = ({ user }) => {
       <Text style={styles.eventModernDate}>{item.date} • {item.time}</Text>
       <Text style={styles.eventModernLocation}><Ionicons name="location-outline" size={14} color="#666" /> {item.location}</Text>
       <Text style={styles.eventModernDescription}>{item.description}</Text>
-      <TouchableOpacity style={styles.eventDeleteButton} onPress={() => handleDeleteEvent(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#fff" />
-      </TouchableOpacity>
+      {user?.role === 'admin' && (
+        <TouchableOpacity style={styles.eventDeleteButton} onPress={() => handleDeleteEvent(item.id)}>
+          <Ionicons name="trash-outline" size={20} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -1210,9 +1313,11 @@ const AnnouncementsScreen = ({ user }) => {
       </View>
       <Text style={styles.announcementModernDate}>{item.date}</Text>
       <Text style={styles.announcementModernContent}>{item.content}</Text>
-      <TouchableOpacity style={styles.announcementDeleteButton} onPress={() => handleDeleteAnnouncement(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#fff" />
-      </TouchableOpacity>
+      {user?.role === 'admin' && (
+        <TouchableOpacity style={styles.announcementDeleteButton} onPress={() => handleDeleteAnnouncement(item.id)}>
+          <Ionicons name="trash-outline" size={20} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -1432,6 +1537,36 @@ const MembersScreen = ({ user }) => {
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
+        {/* Show address if available */}
+        {item.address && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 6 }} />
+            <Text style={{ fontSize: 14, color: '#333' }}>{item.address}</Text>
+          </View>
+        )}
+        {/* Admin-only: show pending address with Accept/Reject if present */}
+        {user?.role === 'admin' && item.pendingAddress && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+            <Ionicons name="time-outline" size={16} color="#FFA726" style={{ marginRight: 6 }} />
+            <Text style={{ fontSize: 14, color: '#FFA726', flex: 1 }}>Pending address: {item.pendingAddress}</Text>
+            <TouchableOpacity onPress={async () => {
+              // Accept: update address and clear pendingAddress
+              const docRef = doc(db, 'members', item.id);
+              await updateDoc(docRef, { address: item.pendingAddress, pendingAddress: '' });
+              fetchMembers();
+            }} style={{ marginLeft: 8 }}>
+              <Ionicons name="checkmark-circle-outline" size={20} color="#4CAF50" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={async () => {
+              // Reject: clear pendingAddress
+              const docRef = doc(db, 'members', item.id);
+              await updateDoc(docRef, { pendingAddress: '' });
+              fetchMembers();
+            }} style={{ marginLeft: 8 }}>
+              <Ionicons name="close-circle-outline" size={20} color="#FF5252" />
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Admin-only activate/deactivate button */}
         {user?.role === 'admin' && (
           <TouchableOpacity
@@ -1519,6 +1654,240 @@ const MembersScreen = ({ user }) => {
   );
 };
 
+// Profile Screen Component
+const ProfileScreen = ({ navigation, user }) => {
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [helpDropdownOpen, setHelpDropdownOpen] = useState(false);
+  // In ProfileScreen, add state for editing address
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState(user.address || '');
+  const [pendingAddress, setPendingAddress] = useState(user.pendingAddress || '');
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      Alert.alert('Logout Error', error.message);
+    }
+  };
+
+  // Function to submit address change for approval
+  const submitAddressChange = async () => {
+    try {
+      // Save pendingAddress to Firestore
+      const membersRef = collection(db, 'members');
+      const q = query(membersRef, where('email', '==', user.email));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        await updateDoc(docRef, { pendingAddress: newAddress });
+        setPendingAddress(newAddress);
+        setEditingAddress(false);
+        Alert.alert('Submitted', 'Your address change is pending admin approval.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Ionicons name="person-circle-outline" size={80} color="#bbb" style={{ marginBottom: 16 }} />
+          <Text style={{ fontSize: 20, color: '#888', marginBottom: 8 }}>No user data</Text>
+          <Text style={{ fontSize: 16, color: '#aaa', marginBottom: 24 }}>Please log in again if needed.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: '#f0f2f5' }]}> 
+      <ScrollView contentContainerStyle={{ alignItems: 'center', padding: 20, paddingBottom: 40 }}>
+        {/* Profile Card */}
+        <View style={{
+          width: '100%',
+          backgroundColor: '#fff',
+          borderRadius: 18,
+          alignItems: 'center',
+          paddingVertical: 32,
+          marginBottom: 24,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          elevation: 3,
+        }}>
+          <Ionicons name="person-circle" size={80} color="#2196F3" style={{ marginBottom: 10 }} />
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#222', marginBottom: 4 }}>
+            {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User'}
+          </Text>
+          <Text style={{ fontSize: 16, color: '#666', marginBottom: 2 }}>{user?.email}</Text>
+        </View>
+
+        {/* User Info Dropdown Card */}
+        <View style={{
+          width: '100%',
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          marginBottom: 18,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          elevation: 2,
+        }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', padding: 18 }}
+            onPress={() => setUserDropdownOpen(open => !open)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="information-circle-outline" size={26} color="#2196F3" style={{ marginRight: 14 }} />
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#222', flex: 1 }}>Account Info</Text>
+            <Ionicons
+              name={userDropdownOpen ? 'chevron-up' : 'chevron-down'}
+              size={26}
+              color="#2196F3"
+            />
+          </TouchableOpacity>
+          {userDropdownOpen && (
+            <View style={{ borderTopWidth: 1, borderTopColor: '#f0f0f0', padding: 18, paddingTop: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <Ionicons name="mail-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                <Text style={{ fontSize: 16, color: '#333' }}>Email: <Text style={{ color: '#555' }}>{user.email}</Text></Text>
+              </View>
+              {user.role && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="person-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: '#333' }}>Role: <Text style={{ color: '#555' }}>{user.role}</Text></Text>
+                </View>
+              )}
+              {user.phoneNumber && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="call-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: '#333' }}>Mobile: <Text style={{ color: '#555' }}>{user.phoneNumber}</Text></Text>
+                </View>
+              )}
+              {user.homeNumber && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="home-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: '#333' }}>Home: <Text style={{ color: '#555' }}>{user.homeNumber}</Text></Text>
+                </View>
+              )}
+              {user.address && !editingAddress && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="location-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: '#333', flex: 1 }}>Address: <Text style={{ color: '#555' }}>{user.address}</Text></Text>
+                  <TouchableOpacity onPress={() => { setEditingAddress(true); setNewAddress(user.address || ''); }}>
+                    <Ionicons name="pencil-outline" size={18} color="#2196F3" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {editingAddress && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="location-outline" size={20} color="#888" style={{ marginRight: 10 }} />
+                  <TextInput
+                    style={{ flex: 1, fontSize: 16, color: '#333', borderBottomWidth: 1, borderBottomColor: '#2196F3', marginRight: 8 }}
+                    value={newAddress}
+                    onChangeText={setNewAddress}
+                    placeholder="Enter new address"
+                    multiline
+                  />
+                  <TouchableOpacity onPress={submitAddressChange} style={{ marginRight: 8 }}>
+                    <Ionicons name="checkmark-outline" size={20} color="#4CAF50" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setEditingAddress(false)}>
+                    <Ionicons name="close-outline" size={20} color="#FF5252" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {pendingAddress && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Ionicons name="time-outline" size={20} color="#FFA726" style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: '#FFA726' }}>Pending approval: <Text style={{ color: '#555' }}>{pendingAddress}</Text></Text>
+                </View>
+              )}
+              {/* Add more user info here if needed */}
+            </View>
+          )}
+        </View>
+
+        {/* Help & Support Dropdown Card */}
+        <View style={{
+          width: '100%',
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          marginBottom: 18,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          elevation: 2,
+        }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', padding: 18 }}
+            onPress={() => setHelpDropdownOpen(open => !open)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="help-circle-outline" size={26} color="#4CAF50" style={{ marginRight: 14 }} />
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#222', flex: 1 }}>Help & Support</Text>
+            <Ionicons
+              name={helpDropdownOpen ? 'chevron-up' : 'chevron-down'}
+              size={26}
+              color="#4CAF50"
+            />
+          </TouchableOpacity>
+          {helpDropdownOpen && (
+            <View style={{ borderTopWidth: 1, borderTopColor: '#f0f0f0', padding: 8 }}>
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10 }} onPress={() => Alert.alert('Help Center', 'Help Center coming soon!')}>
+                <Ionicons name="help-buoy-outline" size={22} color="#2196F3" style={{ marginRight: 14 }} />
+                <Text style={{ fontSize: 16, color: '#222' }}>Help Center</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10 }} onPress={() => Alert.alert('Report Center', 'Report Center coming soon!')}>
+                <Ionicons name="alert-circle-outline" size={22} color="#FF9800" style={{ marginRight: 14 }} />
+                <Text style={{ fontSize: 16, color: '#222' }}>Report Center</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10 }} onPress={() => Alert.alert('About Us', 'About Us coming soon!')}>
+                <Ionicons name="information-circle-outline" size={22} color="#4CAF50" style={{ marginRight: 14 }} />
+                <Text style={{ fontSize: 16, color: '#222' }}>About Us</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Log Out Card Button */}
+        <TouchableOpacity
+          style={{
+            width: '100%',
+            backgroundColor: '#fff',
+            borderRadius: 16,
+            paddingVertical: 18,
+            alignItems: 'center',
+            marginTop: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 6,
+            elevation: 2,
+          }}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="log-out-outline" size={24} color="#FF5252" style={{ marginRight: 12 }} />
+            <Text style={{ color: '#FF5252', fontWeight: 'bold', fontSize: 18 }}>Log Out</Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
 // Main Tab Navigator
 // Main Tab Navigator (no animation)
 
@@ -1527,20 +1896,24 @@ const MainTabs = ({ route }) => {
   const user = route?.params?.user;
   // 1. In MainTabs, fetch events from Firestore and store in state
   const [dashboardEvents, setDashboardEvents] = useState([]);
+  
+  const fetchDashboardEvents = async () => {
+    try {
+      const eventsRef = collection(db, 'events');
+      const q = query(eventsRef, orderBy('date', 'asc'));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setDashboardEvents(data);
+    } catch (error) {
+      // Optionally handle error
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardEvents = async () => {
-      try {
-        const eventsRef = collection(db, 'events');
-        const q = query(eventsRef, orderBy('date', 'asc'));
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setDashboardEvents(data);
-      } catch (error) {
-        // Optionally handle error
-      }
-    };
     fetchDashboardEvents();
   }, []);
+
+
 
   return (
     <Tab.Navigator
@@ -1557,6 +1930,8 @@ const MainTabs = ({ route }) => {
             iconName = focused ? 'megaphone' : 'megaphone-outline';
           } else if (route.name === 'Members') {
             iconName = focused ? 'people' : 'people-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -1585,6 +1960,9 @@ const MainTabs = ({ route }) => {
       <Tab.Screen name="Members">
         {props => <TabSlideWrapper index={4} {...props}><MembersScreen {...props} user={user} /></TabSlideWrapper>}
       </Tab.Screen>
+      <Tab.Screen name="Profile">
+        {props => <TabSlideWrapper index={5} {...props}><ProfileScreen {...props} user={user} /></TabSlideWrapper>}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -1608,7 +1986,7 @@ export default function App() {
         <Stack.Screen 
           name="MainTabs" 
           component={MainTabs} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, gestureEnabled: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -2341,28 +2719,40 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     position: 'relative',
+    paddingRight: 60, // Space for delete button
   },
   announcementModernHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
+    paddingRight: 15, // Extra space for badge
   },
   announcementModernTitle: {
     fontSize: 17,
     fontWeight: 'bold',
     color: '#222',
     flex: 1,
+    marginRight: 12, // Space between title and badge
   },
   announcementModernBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
     marginLeft: 8,
+    minWidth: 80, // Ensure badge has minimum width
   },
-  announcementModernBadgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: 'bold',
+  announcementDeleteButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: '#f44336',
+    borderRadius: 16,
+    padding: 8,
+    zIndex: 2,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   announcementModernDate: {
     color: '#999',
@@ -2374,15 +2764,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     marginBottom: 8,
-  },
-  announcementDeleteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#f44336',
-    borderRadius: 16,
-    padding: 6,
-    zIndex: 2,
   },
   // Add modern styles for events
   eventsModernHeader: {
@@ -2429,23 +2810,40 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     position: 'relative',
+    paddingRight: 60, // More space for delete button
   },
   eventModernHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
+    paddingRight: 15, // Extra space for badge
   },
   eventModernTitle: {
     fontSize: 17,
     fontWeight: 'bold',
     color: '#222',
     flex: 1,
+    marginRight: 12, // More space between title and badge
+  },
+  eventDeleteButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: '#f44336',
+    borderRadius: 16,
+    padding: 8,
+    zIndex: 2,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   eventModernBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
     marginLeft: 8,
+    minWidth: 80, // Ensure badge has minimum width
   },
   eventModernBadgeText: {
     color: '#fff',
@@ -2467,15 +2865,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     marginBottom: 8,
-  },
-  eventDeleteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#f44336',
-    borderRadius: 16,
-    padding: 6,
-    zIndex: 2,
   },
   // Add modern styles for requests
   requestsModernHeader: {
