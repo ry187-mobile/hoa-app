@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blessed Sapphire HOA - Smart Community Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-top: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .qr-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-code img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .qr-info {
+            text-align: left;
+            max-width: 300px;
+        }
+
+        .qr-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .qr-info p {
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .github-link {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: opacity 0.3s;
+        }
+
+        .github-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* App Screenshots */
+        .screenshots {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .screenshot-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .screenshot-card:hover {
+            transform: scale(1.05);
+        }
+
+        .phone-mockup {
+            width: 200px;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 25px;
+            margin: 0 auto 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .phone-screen {
+            width: 180px;
+            height: 380px;
+            background: white;
+            border-radius: 15px;
+            margin: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen-content {
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .screen-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .screen-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .screen-desc {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Download Section */
+        .download-section {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .download-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .download-qr {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 400px;
+        }
+
+        .download-qr h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .download-qr p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .download-qr-code {
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin: 1rem auto;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .download-qr-code img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Footer */
+        .footer {
+            background: #333;
+            color: white;
+            padding: 3rem 2rem 1rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .footer-section p, .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            line-height: 1.8;
+        }
+
+        .footer-section a:hover {
+            color: #667eea;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .qr-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .qr-info {
+                text-align: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Additional Styles */
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">
+                <i class="fas fa-home"></i>
+                Blessed Sapphire HOA
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#screenshots">Screenshots</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Smart Community Management</h1>
+            <p>Connect, communicate, and manage your HOA community with our powerful mobile app. 
+               Stay informed, report issues, and participate in community events - all from your smartphone.</p>
+            <div class="cta-buttons">
+                <a href="#download" class="btn btn-primary">
+                    <i class="fab fa-apple"></i>
+                    Download for iOS
+                </a>
+                <a href="#download" class="btn btn-secondary">
+                    <i class="fab fa-google-play"></i>
+                    Download for Android
+                </a>
+            </div>
+            
+            <!-- QR Code Section in Hero -->
+            <div class="qr-section">
+                <div class="qr-container">
+                    <div class="qr-code" id="hero-qr-code">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/ry187-mobile/hoa-app" alt="QR Code to GitHub Repository">
+                    </div>
+                    <div class="qr-info">
+                        <h3>📱 Scan to Download</h3>
+                        <p>Scan this QR code with your phone to access the GitHub repository and download the app source code.</p>
+                        <a href="https://github.com/ry187-mobile/hoa-app" class="github-link" target="_blank">
+                            <i class="fab fa-github"></i>
+                            View on GitHub
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features for Modern Communities</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h3>Smart Dashboard</h3>
+                    <p>Get real-time insights into community activities, open issues, and upcoming events at a glance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Issue Reporting</h3>
+                    <p>Report maintenance issues, security concerns, or community problems with photos and detailed descriptions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Event Management</h3>
+                    <p>Create, manage, and RSVP to community events. Never miss important gatherings or activities.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3>Announcements</h3>
+                    <p>Stay updated with priority-based announcements from your HOA board and community leaders.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Member Directory</h3>
+                    <p>Connect with neighbors through our secure member directory with contact information and addresses.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3>Role-Based Access</h3>
+                    <p>Admin controls for board members to manage requests, add members, and oversee community operations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots" id="screenshots">
+        <div class="container">
+            <h2 class="section-title">Beautiful, Intuitive Interface</h2>
+            <div class="screenshots-grid">
+                <div class="screenshot-card floating">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="screen-content">
+                                <div class="screen-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <div class="screen-title">Dashboard</div>
+                                <div class="screen-desc">Real-time community overview</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Smart Dashboard</h3>
+                    <p>Monitor community activity and stay informed</p>
+                </div>
+                <div class="screenshot-card floating" style="animation-delay: 1s;">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="screen-content">
+                                <div class="screen-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="screen-title">Requests</div>
+                                <div class="screen-desc">Report and track issues</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Issue Management</h3>
+                    <p>Efficient problem reporting and resolution</p>
+                </div>
+                <div class="screenshot-card floating" style="animation-delay: 2s;">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="screen-content">
+                                <div class="screen-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="screen-title">Events</div>
+                                <div class="screen-desc">Community event calendar</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Event Calendar</h3>
+                    <p>Never miss important community events</p>
+                </div>
+                <div class="screenshot-card floating" style="animation-delay: 3s;">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="screen-content">
+                                <div class="screen-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="screen-title">Members</div>
+                                <div class="screen-desc">Community directory</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Member Directory</h3>
+                    <p>Connect with your neighbors</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download-section" id="download">
+        <div class="container">
+            <div class="download-content">
+                <h2 class="section-title">Ready to Get Started?</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem; color: #666;">
+                    Join the <span class="highlight">Blessed Sapphire</span> community and experience modern HOA management. 
+                    Download the app today and start connecting with your neighbors!
+                </p>
+                
+                <div class="download-qr">
+                    <h3>📱 Scan QR Code to Download</h3>
+                    <p>Scan this QR code with your smartphone to access the GitHub repository and download the app source code.</p>
+                    <div class="download-qr-code">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/ry187-mobile/hoa-app" alt="QR Code to GitHub Repository">
+                    </div>
+                    <a href="https://github.com/ry187-mobile/hoa-app" class="btn btn-primary" target="_blank" style="margin-bottom: 1rem;">
+                        <i class="fab fa-github"></i>
+                        View Repository on GitHub
+                    </a>
+                    <div class="cta-buttons" style="justify-content: center;">
+                        <a href="https://github.com/ry187-mobile/hoa-app" class="btn btn-primary" target="_blank">
+                            <i class="fab fa-github"></i>
+                            Download Source Code
+                        </a>
+                        <a href="https://github.com/ry187-mobile/hoa-app" class="btn btn-secondary" target="_blank">
+                            <i class="fas fa-code"></i>
+                            View Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Blessed Sapphire HOA</h3>
+                <p>Empowering communities through smart technology and seamless communication.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Features</h3>
+                <p><a href="#features">Dashboard</a></p>
+                <p><a href="#features">Issue Reporting</a></p>
+                <p><a href="#features">Event Management</a></p>
+                <p><a href="#features">Member Directory</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <p><a href="#contact">Contact Us</a></p>
+                <p><a href="https://github.com/ry187-mobile/hoa-app" target="_blank">GitHub Repository</a></p>
+                <p><a href="#contact">Help Center</a></p>
+                <p><a href="#contact">Privacy Policy</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-envelope"></i> support@blessedsapphire.com</p>
+                <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+                <p><i class="fas fa-map-marker-alt"></i> Blessed Sapphire Community</p>
+                <p><i class="fab fa-github"></i> <a href="https://github.com/ry187-mobile/hoa-app" target="_blank">GitHub Repository</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Blessed Sapphire HOA. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(102, 126, 234, 0.95)';
+            } else {
+                header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and screenshot cards
+        document.querySelectorAll('.feature-card, .screenshot-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html> 
