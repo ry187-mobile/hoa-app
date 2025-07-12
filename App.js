@@ -108,8 +108,14 @@ const upcomingEvents = events.length;
   console.log('Dashboard: Recent announcements to display:', recentAnnouncements.length, recentAnnouncements);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
+      <ScrollView
+        contentContainerStyle={{
+          padding: 20,
+          paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 32 : 20,
+        }}
+      >
         {/* Welcome Card */}
         <View style={styles.dashboardWelcomeCardModern}>
           <Text style={styles.dashboardWelcomeTitleModern}>Welcome back, {user?.firstName || 'User'}!</Text>
@@ -205,12 +211,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, StatusBar, SafeAreaView, Modal, FlatList, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
-import * as Facebook from 'expo-facebook';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { auth, db } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, FacebookAuthProvider, signInWithCredential, sendEmailVerification, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCredential, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, getDoc } from 'firebase/firestore';
+import { StatusBar as RNStatusBar } from 'expo-status-bar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -512,6 +518,9 @@ const LoginScreen = ({ navigation }) => {
           address
         };
         setCurrentUser(userData);
+        
+
+        
         navigation.navigate('MainTabs', { user: userData });
       } catch (error) {
         Alert.alert('Login Error', error.message);
@@ -521,34 +530,7 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  // Facebook login
-  const handleFacebookLogin = async () => {
-    try {
-      await Facebook.initializeAsync({
-        appId: 'YOUR_FACEBOOK_APP_ID',
-      });
-      const result = await Facebook.logInWithReadPermissionsAsync({
-        permissions: ['public_profile', 'email'],
-      });
-      if (result.type === 'success') {
-        // Build Firebase credential with the Facebook access token.
-        const credential = FacebookAuthProvider.credential(result.token);
-        const userCredential = await signInWithCredential(auth, credential);
-        // Set current user data for Facebook login
-        const userData = {
-          firstName: userCredential.user.displayName ? userCredential.user.displayName.split(' ')[0] : 'User',
-          lastName: userCredential.user.displayName ? userCredential.user.displayName.split(' ').slice(1).join(' ') : '',
-          email: userCredential.user.email
-        };
-        setCurrentUser(userData);
-        navigation.navigate('MainTabs', { user: userData });
-      } else {
-        // type === 'cancel'
-      }
-    } catch ({ message }) {
-      Alert.alert('Facebook Login Error', message);
-    }
-  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -584,20 +566,13 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 
-
-        {/* Facebook Login Button */}
-        <TouchableOpacity style={styles.facebookButton} onPress={handleFacebookLogin}>
-          <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png' }} style={styles.facebookLogo} />
-          <Text style={styles.facebookButtonText}>Continue with Facebook</Text>
-        </TouchableOpacity>
-
         {/* Google Login Button */}
         <TouchableOpacity
-          style={[styles.facebookButton, { backgroundColor: '#1877f3', borderWidth: 1, borderColor: '#e0e0e0', marginTop: 8 }]}
+          style={[styles.facebookButton, { backgroundColor: '#4285f4', borderWidth: 1, borderColor: '#e0e0e0', marginTop: 16 }]}
           onPress={() => promptAsync()}
           disabled={!request}
         >
-          <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png' }} style={{ width: 28, height: 28, marginRight: 10, borderRadius: 4, backgroundColor: '#1877f3' }} />
+          <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png' }} style={{ width: 28, height: 28, marginRight: 10, borderRadius: 4, backgroundColor: '#4285f4' }} />
           <Text style={[styles.facebookButtonText, { color: '#fff' }]}>Continue with Google</Text>
         </TouchableOpacity>
 
@@ -613,25 +588,31 @@ const LoginScreen = ({ navigation }) => {
       <Modal visible={showForgotPassword} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.registerModal}>
-            <Text style={styles.gmailModalTitle}>Reset your password</Text>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Enter your email</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={forgotEmail}
-                onChangeText={setForgotEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <TouchableOpacity style={styles.gmailCreateButton} onPress={handleForgotPassword}>
-              <Text style={styles.gmailCreateButtonText}>Send Reset Link</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.gmailSignInLink} onPress={() => setShowForgotPassword(false)}>
-              <Text style={styles.gmailSignInText}>Back to Login</Text>
-            </TouchableOpacity>
+            <ScrollView 
+              style={styles.registerModalScroll}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.registerModalContent}
+            >
+              <Text style={styles.gmailModalTitle}>Reset your password</Text>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Enter your email</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={forgotEmail}
+                  onChangeText={setForgotEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleForgotPassword}>
+                <Text style={styles.gmailCreateButtonText}>Send Reset Link</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => setShowForgotPassword(false)}>
+                <Text style={styles.gmailSignInText}>Back to Login</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -641,129 +622,131 @@ const LoginScreen = ({ navigation }) => {
       <Modal visible={showRegister} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.registerModal}>
-            <Text style={styles.gmailModalTitle}>Create your account</Text>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Gmail Address</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={registerEmail}
-                onChangeText={text => {
-                  setRegisterEmail(text);
-                  setOtpSent(false);
-                  setEnteredOtp('');
-                  setOtp('');
-                  setOtpError('');
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>First Name</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={registerFirstName}
-                onChangeText={setRegisterFirstName}
-                autoCapitalize="words"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Last Name</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={registerLastName}
-                onChangeText={setRegisterLastName}
-                autoCapitalize="words"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Home Number</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={registerHomeNumber}
-                onChangeText={setRegisterHomeNumber}
-                autoCapitalize="characters"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Phone Number</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={registerPhoneNumber}
-                onChangeText={setRegisterPhoneNumber}
-                keyboardType="phone-pad"
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Address</Text>
-              <TextInput
-                style={styles.gmailInput}
-                placeholder="Enter your address"
-                value={registerAddress}
-                onChangeText={setRegisterAddress}
-                multiline
-                numberOfLines={2}
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Password</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TextInput
-                  style={[styles.gmailInput, { flex: 1 }]}
-                  value={registerPassword}
-                  onChangeText={setRegisterPassword}
-                  secureTextEntry={!showPassword}
-                  selectionColor="#1a73e8"
-                  placeholder=""
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#888" style={{ marginLeft: 8 }} />
-                </TouchableOpacity>
-              </View>
-            </View>
-            {/* OTP Section */}
-            {otpSent && (
+            <ScrollView contentContainerStyle={{padding: 24}} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.gmailModalTitle}>Create your account</Text>
               <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Enter the 6-digit code sent to your Gmail</Text>
+                <Text style={styles.gmailInputLabel}>Gmail Address</Text>
                 <TextInput
                   style={styles.gmailInput}
-                  value={enteredOtp}
-                  onChangeText={setEnteredOtp}
-                  keyboardType="numeric"
-                  maxLength={6}
+                  value={registerEmail}
+                  onChangeText={text => {
+                    setRegisterEmail(text);
+                    setOtpSent(false);
+                    setEnteredOtp('');
+                    setOtp('');
+                    setOtpError('');
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                   selectionColor="#1a73e8"
                   placeholder=""
                 />
               </View>
-            )}
-            {otpError ? <Text style={{ color: 'red', marginBottom: 8 }}>{otpError}</Text> : null}
-            <TouchableOpacity style={styles.gmailCreateButton} onPress={handleRegister} disabled={isSendingOtp}>
-              <Text style={styles.gmailCreateButtonText}>{otpSent ? 'Verify & Create Account' : (isSendingOtp ? 'Sending Code...' : 'Send Code to Gmail')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
-              setShowRegister(false);
-              setOtpSent(false);
-              setEnteredOtp('');
-              setOtp('');
-              setOtpError('');
-              setRegisterFirstName('');
-              setRegisterLastName('');
-              setRegisterHomeNumber('');
-              setRegisterPhoneNumber('');
-              setRegisterAddress('');
-            }}>
-              <Text style={styles.gmailSignInText}>Already have an account? <Text style={{ color: '#1a73e8', fontWeight: 'bold' }}>Sign in</Text></Text>
-            </TouchableOpacity>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>First Name</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={registerFirstName}
+                  onChangeText={setRegisterFirstName}
+                  autoCapitalize="words"
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Last Name</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={registerLastName}
+                  onChangeText={setRegisterLastName}
+                  autoCapitalize="words"
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Home Number</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={registerHomeNumber}
+                  onChangeText={setRegisterHomeNumber}
+                  autoCapitalize="characters"
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={registerPhoneNumber}
+                  onChangeText={setRegisterPhoneNumber}
+                  keyboardType="phone-pad"
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Address</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  placeholder="Enter your address"
+                  value={registerAddress}
+                  onChangeText={setRegisterAddress}
+                  multiline
+                  numberOfLines={2}
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Password</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput
+                    style={[styles.gmailInput, { flex: 1 }]}
+                    value={registerPassword}
+                    onChangeText={setRegisterPassword}
+                    secureTextEntry={!showPassword}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#888" style={{ marginLeft: 8 }} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {/* OTP Section */}
+              {otpSent && (
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Enter the 6-digit code sent to your Gmail</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={enteredOtp}
+                    onChangeText={setEnteredOtp}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
+                </View>
+              )}
+              {otpError ? <Text style={{ color: 'red', marginBottom: 8 }}>{otpError}</Text> : null}
+              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleRegister} disabled={isSendingOtp}>
+                <Text style={styles.gmailCreateButtonText}>{otpSent ? 'Verify & Create Account' : (isSendingOtp ? 'Sending Code...' : 'Send Code to Gmail')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                setShowRegister(false);
+                setOtpSent(false);
+                setEnteredOtp('');
+                setOtp('');
+                setOtpError('');
+                setRegisterFirstName('');
+                setRegisterLastName('');
+                setRegisterHomeNumber('');
+                setRegisterPhoneNumber('');
+                setRegisterAddress('');
+              }}>
+                <Text style={styles.gmailSignInText}>Already have an account? <Text style={{ color: '#1a73e8', fontWeight: 'bold' }}>Sign in</Text></Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -811,14 +794,17 @@ const EventsScreen = ({ user }) => {
       return;
     }
     try {
-      await addDoc(collection(db, 'events'), {
+      const eventData = {
         title: newTitle,
         date: newDate,
         time: newTime,
         location: newLocation,
         description: newDescription,
         type: newType,
-      });
+      };
+
+      await addDoc(collection(db, 'events'), eventData);
+      
       setShowAddModal(false);
       setNewTitle('');
       setNewDate('');
@@ -829,6 +815,7 @@ const EventsScreen = ({ user }) => {
       fetchEvents();
       Alert.alert('Success', 'Event added!');
     } catch (error) {
+      console.error('Error adding event:', error);
       Alert.alert('Error', 'Failed to add event');
     }
   };
@@ -1049,13 +1036,16 @@ const RequestsScreen = ({ user }) => {
       return;
     }
     try {
-      await addDoc(collection(db, 'requests'), {
+      const requestData = {
         title: newTitle,
         description: newDescription,
         date: new Date().toISOString().slice(0, 10),
         status: 'Pending',
         type: newType,
-      });
+      };
+
+      await addDoc(collection(db, 'requests'), requestData);
+      
       setShowAddModal(false);
       setNewTitle('');
       setNewDescription('');
@@ -1063,6 +1053,7 @@ const RequestsScreen = ({ user }) => {
       fetchRequests();
       Alert.alert('Success', 'Request submitted!');
     } catch (error) {
+      console.error('Error submitting request:', error);
       Alert.alert('Error', 'Failed to submit request');
     }
   };
@@ -1082,12 +1073,19 @@ const RequestsScreen = ({ user }) => {
   const handleUpdateStatus = async (id, currentStatus) => {
     try {
       const newStatus = currentStatus === 'Pending' ? 'Resolved' : 'Pending';
+      
+      
+      
       await updateDoc(doc(db, 'requests', id), {
         status: newStatus
       });
+      
+
+      
       fetchRequests();
       Alert.alert('Updated', `Request marked as ${newStatus}`);
     } catch (error) {
+      console.error('Error updating request status:', error);
       Alert.alert('Error', 'Failed to update request status');
     }
   };
@@ -1271,12 +1269,15 @@ const AnnouncementsScreen = ({ user }) => {
       return;
     }
     try {
-      await addDoc(collection(db, 'announcements'), {
+      const announcementData = {
         title: newTitle,
         content: newContent,
         date: new Date().toISOString().slice(0, 10),
         priority: newPriority,
-      });
+      };
+
+      await addDoc(collection(db, 'announcements'), announcementData);
+      
       setShowAddModal(false);
       setNewTitle('');
       setNewContent('');
@@ -1284,6 +1285,7 @@ const AnnouncementsScreen = ({ user }) => {
       fetchAnnouncements();
       Alert.alert('Success', 'Announcement added!');
     } catch (error) {
+      console.error('Error adding announcement:', error);
       Alert.alert('Error', 'Failed to add announcement');
     }
   };
@@ -2032,6 +2034,7 @@ const ProfileScreen = ({ navigation, user }) => {
                 <Ionicons name="information-circle-outline" size={22} color="#4CAF50" style={{ marginRight: 14 }} />
                 <Text style={{ fontSize: 16, color: '#222' }}>About Us</Text>
               </TouchableOpacity>
+
             </View>
           )}
         </View>
@@ -2151,6 +2154,7 @@ const TabSlideWrapper = ({ children }) => children;
 
 // Main App Component
 export default function App() {
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
@@ -2164,6 +2168,7 @@ export default function App() {
           component={MainTabs} 
           options={{ headerShown: false, gestureEnabled: false }} 
         />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -2272,9 +2277,8 @@ const styles = StyleSheet.create({
   registerModal: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 24,
-    width: '85%',
-    alignItems: 'center',
+    width: '90%',
+    maxHeight: '80%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -3160,5 +3164,17 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  gmailInputModern: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 10,
+    fontSize: 16,
+    color: '#222',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 6,
+    marginBottom: 8,
   },
 });
