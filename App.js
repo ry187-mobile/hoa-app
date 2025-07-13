@@ -2001,6 +2001,8 @@ const ProfileScreen = ({ navigation, user }) => {
           )}
         </View>
 
+
+
         {/* Help & Support Dropdown Card */}
         <View style={{
           width: '100%',
@@ -2120,7 +2122,7 @@ const MainTabs = ({ route }) => {
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#2196F3',
+        tabBarActiveTintColor: '#D4AF37',
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
         // Enable animation for tab transitions
@@ -2160,7 +2162,6 @@ const TabSlideWrapper = ({ children }) => children;
 
 // Main App Component
 export default function App() {
-
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
@@ -2174,7 +2175,6 @@ export default function App() {
           component={MainTabs} 
           options={{ headerShown: false, gestureEnabled: false }} 
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -2202,7 +2202,7 @@ const styles = StyleSheet.create({
   gmailInput: {
     backgroundColor: '#fff',
     borderBottomWidth: 2,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#1B365D',
     fontSize: 16,
     color: '#222',
     paddingVertical: 10,
@@ -2210,13 +2210,13 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   gmailCreateButton: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#1B365D',
     borderRadius: 6,
     paddingVertical: 14,
     width: '100%',
     marginTop: 10,
     marginBottom: 8,
-    shadowColor: '#1a73e8',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -2269,7 +2269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registerButtonText: {
-    color: '#2196F3',
+    color: '#D4AF37',
     fontSize: 16,
     fontWeight: 'bold',
     opacity: 0.7,
@@ -2293,11 +2293,11 @@ const styles = StyleSheet.create({
   },
   // Dashboard styles
   dashboardWelcomeCardModern: {
-    backgroundColor: '#6a5acd',
+    backgroundColor: '#1B365D',
     borderRadius: 18,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#6a5acd',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 12,
@@ -2410,7 +2410,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   dashboardActionLabelModern: {
-    color: '#2196F3',
+    color: '#D4AF37',
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 6,
@@ -2454,7 +2454,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginButton: {
-    backgroundColor: '#1877f3',
+    backgroundColor: '#1B365D',
     borderRadius: 8,
     paddingVertical: 16,
     marginTop: 16,
@@ -2470,7 +2470,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   forgotPasswordText: {
-    color: '#2196F3',
+    color: '#D4AF37',
     fontSize: 14,
     opacity: 0.7,
   },
@@ -2714,10 +2714,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   addMemberButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1B365D',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#2196F3',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -2770,8 +2770,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   filterChipActive: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    backgroundColor: '#1B365D',
+    borderColor: '#1B365D',
   },
   filterChipText: {
     fontSize: 14,
@@ -2882,10 +2882,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   announcementsAddButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1B365D',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#2196F3',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -2973,10 +2973,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   eventsAddButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1B365D',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#2196F3',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -3074,10 +3074,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   requestsAddButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1B365D',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#2196F3',
+    shadowColor: '#1B365D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
