@@ -217,6 +217,7 @@ import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCredential, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, getDoc } from 'firebase/firestore';
 import { StatusBar as RNStatusBar } from 'expo-status-bar';
+import BSNALogo from './assets/bsna-logo.png';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -536,6 +537,11 @@ const LoginScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.loginContainer}>
+        <Image
+          source={BSNALogo}
+          style={{ width: 180, height: 180, alignSelf: 'center', marginBottom: 12 }}
+          resizeMode="contain"
+        />
         <Text style={styles.title}>Blessed Sapphire</Text>
         <Text style={styles.subtitle}>Welcome Back!</Text>
 
