@@ -8,34 +8,20 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Fetch requests from Firestore
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      const requestsRef = collection(db, 'requests');
-      const q = query(requestsRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
+  // DashboardScreen real-time requests
+  useEffect(() => {
+    const requestsRef = collection(db, 'requests');
+    const q = query(requestsRef, orderBy('date', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setRequests(data);
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-    } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  // Refresh data when screen comes into focus
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchRequests();
+    }, (error) => {
+      console.error('Error listening to requests:', error);
+      setLoading(false);
     });
-
-    return unsubscribe;
-  }, [navigation]);
+    return () => unsubscribe();
+  }, []);
 
   // Calculate dashboard data from real requests
 const openIssues = requests.filter(request => request.status === 'Pending').length;
@@ -80,18 +66,17 @@ const upcomingEvents = events.length;
   }, []);
 
   // Remove the old fetchAnnouncements function and its calls
-  useEffect(() => {
-    fetchRequests();
-  }, []);
+  // useEffect(() => {
+  //   fetchRequests();
+  // }, []);
 
   // Refresh data when screen comes into focus (only for requests now)
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchRequests();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener('focus', () => {
+  //     fetchRequests();
+  //   });
+  //   return unsubscribe;
+  // }, [navigation]);
 
   // Function to get priority color for announcements
   function getAnnouncementPriorityColor(priority) {
@@ -593,26 +578,26 @@ const LoginScreen = ({ navigation }) => {
       {/* Forgot Password Modal */}
       <Modal visible={showForgotPassword} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.registerModal}>
+          <View style={[styles.registerModal, { paddingHorizontal: 24, paddingVertical: 32 }]}> 
             <ScrollView 
-              style={styles.registerModalScroll}
+              style={{ minWidth: 280 }}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.registerModalContent}
+              contentContainerStyle={{ alignItems: 'center', paddingBottom: 16 }}
             >
-              <Text style={styles.gmailModalTitle}>Reset your password</Text>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Enter your email</Text>
+              <Text style={[styles.gmailModalTitle, { textAlign: 'center', alignSelf: 'center', marginBottom: 24 }]}>Reset your password</Text>
+              <View style={[styles.gmailInputGroup, { width: '100%', marginBottom: 24 }]}> 
+                <Text style={[styles.gmailInputLabel, { textAlign: 'left', marginLeft: 2 }]}>Enter your email</Text>
                 <TextInput
-                  style={styles.gmailInput}
+                  style={[styles.gmailInput, { borderRadius: 8, paddingHorizontal: 12, marginTop: 4 }]}
                   value={forgotEmail}
                   onChangeText={setForgotEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   selectionColor="#1a73e8"
-                  placeholder=""
+                  placeholder="Email address"
                 />
               </View>
-              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleForgotPassword}>
+              <TouchableOpacity style={[styles.gmailCreateButton, { width: '100%', marginBottom: 12 }]} onPress={handleForgotPassword}>
                 <Text style={styles.gmailCreateButtonText}>Send Reset Link</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.gmailSignInLink} onPress={() => setShowForgotPassword(false)}>
@@ -771,27 +756,50 @@ const EventsScreen = ({ user }) => {
   const [newLocation, setNewLocation] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newType, setNewType] = useState('meeting');
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(user?.role === 'admin' ? 'upcoming' : 'all');
 
-  // Fetch events from Firestore
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const eventsRef = collection(db, 'events');
-      const q = query(eventsRef, orderBy('date', 'asc'));
-      const querySnapshot = await getDocs(q);
+  // EventsScreen real-time events
+  useEffect(() => {
+    const eventsRef = collection(db, 'events');
+    const q = query(eventsRef, orderBy('date', 'asc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEvents(data);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load events');
-    } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
+    }, (error) => {
+      Alert.alert('Error', 'Failed to load events');
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
+
+  // Helper to check if event is upcoming or ended
+  function isUpcoming(event) {
+    if (!event.date) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const eventDate = new Date(event.date);
+    eventDate.setHours(0,0,0,0);
+    return eventDate >= today;
+  }
+  function isEnded(event) {
+    if (!event.date) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const eventDate = new Date(event.date);
+    eventDate.setHours(0,0,0,0);
+    return eventDate < today;
+  }
+
+  // Filtering (by type and admin status)
+  let filtered = events;
+  if (user?.role === 'admin') {
+    if (filter === 'upcoming') filtered = events.filter(e => e.status === 'Upcoming');
+    else if (filter === 'ended') filtered = events.filter(e => e.status === 'Ended');
+    else filtered = events;
+  } else {
+    filtered = events.filter(e => filter === 'all' || e.type === filter);
+  }
 
   // Add new event
   const handleAddEvent = async () => {
@@ -818,7 +826,6 @@ const EventsScreen = ({ user }) => {
       setNewLocation('');
       setNewDescription('');
       setNewType('meeting');
-      fetchEvents();
       Alert.alert('Success', 'Event added!');
     } catch (error) {
       console.error('Error adding event:', error);
@@ -830,15 +837,11 @@ const EventsScreen = ({ user }) => {
   const handleDeleteEvent = async (id) => {
     try {
       await deleteDoc(doc(db, 'events', id));
-      fetchEvents();
       Alert.alert('Deleted', 'Event deleted');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete event');
     }
   };
-
-  // Filtering (by type)
-  const filtered = events.filter(e => filter === 'all' || e.type === filter);
 
   // Modern card UI
   const renderEvent = ({ item }) => (
@@ -852,6 +855,10 @@ const EventsScreen = ({ user }) => {
       <Text style={styles.eventModernDate}>{item.date} • {item.time}</Text>
       <Text style={styles.eventModernLocation}><Ionicons name="location-outline" size={14} color="#666" /> {item.location}</Text>
       <Text style={styles.eventModernDescription}>{item.description}</Text>
+      {/* Show priority */}
+      <Text style={{ color: item.priority === 'high' ? '#f44336' : item.priority === 'medium' ? '#ff9800' : item.priority === 'low' ? '#4caf50' : '#888', fontWeight: 'bold', marginTop: 4 }}>
+        Priority: {item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Medium'}
+      </Text>
       {user?.role === 'admin' && (
         <TouchableOpacity style={styles.eventDeleteButton} onPress={() => handleDeleteEvent(item.id)}>
           <Ionicons name="trash-outline" size={20} color="#fff" />
@@ -884,18 +891,35 @@ const EventsScreen = ({ user }) => {
       </View>
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
-            <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'meeting' && styles.filterChipActive]} onPress={() => setFilter('meeting')}>
-            <Text style={[styles.filterChipText, filter === 'meeting' && styles.filterChipTextActive]}>Meeting</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'party' && styles.filterChipActive]} onPress={() => setFilter('party')}>
-            <Text style={[styles.filterChipText, filter === 'party' && styles.filterChipTextActive]}>Party</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'committee' && styles.filterChipActive]} onPress={() => setFilter('committee')}>
-            <Text style={[styles.filterChipText, filter === 'committee' && styles.filterChipTextActive]}>Committee</Text>
-          </TouchableOpacity>
+          {user?.role === 'admin' && (
+            <>
+              <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+                <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.filterChip, filter === 'upcoming' && styles.filterChipActive]} onPress={() => setFilter('upcoming')}>
+                <Text style={[styles.filterChipText, filter === 'upcoming' && styles.filterChipTextActive]}>Upcoming</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.filterChip, filter === 'ended' && styles.filterChipActive]} onPress={() => setFilter('ended')}>
+                <Text style={[styles.filterChipText, filter === 'ended' && styles.filterChipTextActive]}>Ended</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {user?.role !== 'admin' && (
+            <>
+              <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+                <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.filterChip, filter === 'meeting' && styles.filterChipActive]} onPress={() => setFilter('meeting')}>
+                <Text style={[styles.filterChipText, filter === 'meeting' && styles.filterChipTextActive]}>Meeting</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.filterChip, filter === 'party' && styles.filterChipActive]} onPress={() => setFilter('party')}>
+                <Text style={[styles.filterChipText, filter === 'party' && styles.filterChipTextActive]}>Party</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.filterChip, filter === 'committee' && styles.filterChipActive]} onPress={() => setFilter('committee')}>
+                <Text style={[styles.filterChipText, filter === 'committee' && styles.filterChipTextActive]}>Committee</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </ScrollView>
       </View>
       <FlatList
@@ -916,87 +940,89 @@ const EventsScreen = ({ user }) => {
         <Modal visible={showAddModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
             <View style={styles.registerModal}>
-              <Text style={styles.gmailModalTitle}>Add Event</Text>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Title</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newTitle}
-                  onChangeText={setNewTitle}
-                  selectionColor="#1a73e8"
-                  placeholder=""
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Date (YYYY-MM-DD)</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newDate}
-                  onChangeText={setNewDate}
-                  selectionColor="#1a73e8"
-                  placeholder="2024-07-01"
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Time</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newTime}
-                  onChangeText={setNewTime}
-                  selectionColor="#1a73e8"
-                  placeholder="7:00 PM"
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Location</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newLocation}
-                  onChangeText={setNewLocation}
-                  selectionColor="#1a73e8"
-                  placeholder="Community Center"
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Description</Text>
-                <TextInput
-                  style={[styles.gmailInput, { height: 80, textAlignVertical: 'top' }]}
-                  value={newDescription}
-                  onChangeText={setNewDescription}
-                  multiline
-                  numberOfLines={4}
-                  selectionColor="#1a73e8"
-                  placeholder=""
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Type</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {['meeting', 'party', 'committee'].map(t => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[styles.filterChip, newType === t && styles.filterChipActive]}
-                      onPress={() => setNewType(t)}
-                    >
-                      <Text style={[styles.filterChipText, newType === t && styles.filterChipTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
-                    </TouchableOpacity>
-                  ))}
+              <ScrollView contentContainerStyle={{padding: 24}} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <Text style={styles.gmailModalTitle}>Add Event</Text>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Title</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newTitle}
+                    onChangeText={setNewTitle}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
                 </View>
-              </View>
-              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddEvent}>
-                <Text style={styles.gmailCreateButtonText}>Add Event</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
-                setShowAddModal(false);
-                setNewTitle('');
-                setNewDate('');
-                setNewTime('');
-                setNewLocation('');
-                setNewDescription('');
-                setNewType('meeting');
-              }}>
-                <Text style={styles.gmailSignInText}>Cancel</Text>
-              </TouchableOpacity>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Date (YYYY-MM-DD)</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newDate}
+                    onChangeText={setNewDate}
+                    selectionColor="#1a73e8"
+                    placeholder="2024-07-01"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Time</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newTime}
+                    onChangeText={setNewTime}
+                    selectionColor="#1a73e8"
+                    placeholder="7:00 PM"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Location</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newLocation}
+                    onChangeText={setNewLocation}
+                    selectionColor="#1a73e8"
+                    placeholder="Community Center"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Description</Text>
+                  <TextInput
+                    style={[styles.gmailInput, { height: 80, textAlignVertical: 'top' }]}
+                    value={newDescription}
+                    onChangeText={setNewDescription}
+                    multiline
+                    numberOfLines={4}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Type</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {['meeting', 'party', 'committee'].map(t => (
+                      <TouchableOpacity
+                        key={t}
+                        style={[styles.filterChip, newType === t && styles.filterChipActive]}
+                        onPress={() => setNewType(t)}
+                      >
+                        <Text style={[styles.filterChipText, newType === t && styles.filterChipTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddEvent}>
+                  <Text style={styles.gmailCreateButtonText}>Add Event</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                  setShowAddModal(false);
+                  setNewTitle('');
+                  setNewDate('');
+                  setNewTime('');
+                  setNewLocation('');
+                  setNewDescription('');
+                  setNewType('meeting');
+                }}>
+                  <Text style={styles.gmailSignInText}>Cancel</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -1016,23 +1042,19 @@ const RequestsScreen = ({ user }) => {
   const [filter, setFilter] = useState('all');
 
   // Fetch requests from Firestore
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      const requestsRef = collection(db, 'requests');
-      const q = query(requestsRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
+  useEffect(() => {
+    // Replace fetchRequests with real-time listener
+    const requestsRef = collection(db, 'requests');
+    const q = query(requestsRef, orderBy('date', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setRequests(data);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load requests');
-    } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRequests();
+    }, (error) => {
+      Alert.alert('Error', 'Failed to load requests');
+      setLoading(false);
+    });
+    return unsubscribe;
   }, []);
 
   // Add new request
@@ -1056,7 +1078,6 @@ const RequestsScreen = ({ user }) => {
       setNewTitle('');
       setNewDescription('');
       setNewType('general');
-      fetchRequests();
       Alert.alert('Success', 'Request submitted!');
     } catch (error) {
       console.error('Error submitting request:', error);
@@ -1068,7 +1089,6 @@ const RequestsScreen = ({ user }) => {
   const handleDeleteRequest = async (id) => {
     try {
       await deleteDoc(doc(db, 'requests', id));
-      fetchRequests();
       Alert.alert('Deleted', 'Request deleted');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete request');
@@ -1088,7 +1108,6 @@ const RequestsScreen = ({ user }) => {
       
 
       
-      fetchRequests();
       Alert.alert('Updated', `Request marked as ${newStatus}`);
     } catch (error) {
       console.error('Error updating request status:', error);
@@ -1129,9 +1148,11 @@ const RequestsScreen = ({ user }) => {
             </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.requestDeleteButton} onPress={() => handleDeleteRequest(item.id)}>
-          <Ionicons name="trash-outline" size={20} color="#fff" />
-        </TouchableOpacity>
+        {user?.role === 'admin' && (
+          <TouchableOpacity style={styles.requestDeleteButton} onPress={() => handleDeleteRequest(item.id)}>
+            <Ionicons name="trash-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -1181,54 +1202,56 @@ const RequestsScreen = ({ user }) => {
       <Modal visible={showAddModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.registerModal}>
-            <Text style={styles.gmailModalTitle}>New Request</Text>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Title</Text>
-              <TextInput
-                style={styles.gmailInput}
-                value={newTitle}
-                onChangeText={setNewTitle}
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Description</Text>
-              <TextInput
-                style={[styles.gmailInput, { height: 60, textAlignVertical: 'top' }]}
-                value={newDescription}
-                onChangeText={setNewDescription}
-                multiline
-                numberOfLines={3}
-                selectionColor="#1a73e8"
-                placeholder=""
-              />
-            </View>
-            <View style={styles.gmailInputGroup}>
-              <Text style={styles.gmailInputLabel}>Type</Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {['general', 'maintenance', 'other'].map(t => (
-                  <TouchableOpacity
-                    key={t}
-                    style={[styles.filterChip, newType === t && styles.filterChipActive]}
-                    onPress={() => setNewType(t)}
-                  >
-                    <Text style={[styles.filterChipText, newType === t && styles.filterChipTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
-                  </TouchableOpacity>
-                ))}
+            <ScrollView contentContainerStyle={{padding: 24}} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.gmailModalTitle}>New Request</Text>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Title</Text>
+                <TextInput
+                  style={styles.gmailInput}
+                  value={newTitle}
+                  onChangeText={setNewTitle}
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
               </View>
-            </View>
-            <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddRequest}>
-              <Text style={styles.gmailCreateButtonText}>Submit Request</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
-              setShowAddModal(false);
-              setNewTitle('');
-              setNewDescription('');
-              setNewType('general');
-            }}>
-              <Text style={styles.gmailSignInText}>Cancel</Text>
-            </TouchableOpacity>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Description</Text>
+                <TextInput
+                  style={[styles.gmailInput, { height: 60, textAlignVertical: 'top' }]}
+                  value={newDescription}
+                  onChangeText={setNewDescription}
+                  multiline
+                  numberOfLines={3}
+                  selectionColor="#1a73e8"
+                  placeholder=""
+                />
+              </View>
+              <View style={styles.gmailInputGroup}>
+                <Text style={styles.gmailInputLabel}>Type</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {['general', 'maintenance', 'other'].map(t => (
+                    <TouchableOpacity
+                      key={t}
+                      style={[styles.filterChip, newType === t && styles.filterChipActive]}
+                      onPress={() => setNewType(t)}
+                    >
+                      <Text style={[styles.filterChipText, newType === t && styles.filterChipTextActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddRequest}>
+                <Text style={styles.gmailCreateButtonText}>Submit Request</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                setShowAddModal(false);
+                setNewTitle('');
+                setNewDescription('');
+                setNewType('general');
+              }}>
+                <Text style={styles.gmailSignInText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1249,24 +1272,25 @@ const AnnouncementsScreen = ({ user }) => {
   const [filter, setFilter] = useState('all');
 
   // Fetch announcements from Firestore
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true);
-      const announcementsRef = collection(db, 'announcements');
-      const q = query(announcementsRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
+  useEffect(() => {
+    const announcementsRef = collection(db, 'announcements');
+    const q = query(announcementsRef, orderBy('date', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setAnnouncements(data);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load announcements');
-    } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAnnouncements();
+    }, (error) => {
+      Alert.alert('Error', 'Failed to load announcements');
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
+
+  // Filtering by priority
+  let filtered = announcements;
+  if (filter !== 'all') {
+    filtered = filtered.filter(a => a.priority === filter);
+  }
 
   // Add new announcement
   const handleAddAnnouncement = async () => {
@@ -1307,9 +1331,6 @@ const AnnouncementsScreen = ({ user }) => {
     }
   };
 
-  // Filtering
-  const filtered = announcements.filter(a => filter === 'all' || a.priority === filter);
-
   // Modern card UI
   const renderAnnouncement = ({ item }) => (
     <View style={styles.announcementModernCard}>
@@ -1321,6 +1342,10 @@ const AnnouncementsScreen = ({ user }) => {
       </View>
       <Text style={styles.announcementModernDate}>{item.date}</Text>
       <Text style={styles.announcementModernContent}>{item.content}</Text>
+      {/* Show priority color-coded */}
+      <Text style={{ color: getPriorityColor(item.priority), fontWeight: 'bold', marginTop: 4 }}>
+        Priority: {item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Medium'}
+      </Text>
       {user?.role === 'admin' && (
         <TouchableOpacity style={styles.announcementDeleteButton} onPress={() => handleDeleteAnnouncement(item.id)}>
           <Ionicons name="trash-outline" size={20} color="#fff" />
@@ -1385,54 +1410,56 @@ const AnnouncementsScreen = ({ user }) => {
         <Modal visible={showAddModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
             <View style={styles.registerModal}>
-              <Text style={styles.gmailModalTitle}>Add Announcement</Text>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Title</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newTitle}
-                  onChangeText={setNewTitle}
-                  selectionColor="#1a73e8"
-                  placeholder=""
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Content</Text>
-                <TextInput
-                  style={[styles.gmailInput, { height: 80, textAlignVertical: 'top' }]}
-                  value={newContent}
-                  onChangeText={setNewContent}
-                  multiline
-                  numberOfLines={4}
-                  selectionColor="#1a73e8"
-                  placeholder=""
-                />
-              </View>
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Priority</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {['high', 'medium', 'low'].map(p => (
-                    <TouchableOpacity
-                      key={p}
-                      style={[styles.filterChip, newPriority === p && styles.filterChipActive]}
-                      onPress={() => setNewPriority(p)}
-                    >
-                      <Text style={[styles.filterChipText, newPriority === p && styles.filterChipTextActive]}>{p.charAt(0).toUpperCase() + p.slice(1)}</Text>
-                    </TouchableOpacity>
-                  ))}
+              <ScrollView contentContainerStyle={{padding: 24}} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <Text style={styles.gmailModalTitle}>Add Announcement</Text>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Title</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newTitle}
+                    onChangeText={setNewTitle}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
                 </View>
-              </View>
-              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddAnnouncement}>
-                <Text style={styles.gmailCreateButtonText}>Add Announcement</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
-                setShowAddModal(false);
-                setNewTitle('');
-                setNewContent('');
-                setNewPriority('medium');
-              }}>
-                <Text style={styles.gmailSignInText}>Cancel</Text>
-              </TouchableOpacity>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Content</Text>
+                  <TextInput
+                    style={[styles.gmailInput, { height: 80, textAlignVertical: 'top' }]}
+                    value={newContent}
+                    onChangeText={setNewContent}
+                    multiline
+                    numberOfLines={4}
+                    selectionColor="#1a73e8"
+                    placeholder=""
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Priority</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {['high', 'medium', 'low'].map(p => (
+                      <TouchableOpacity
+                        key={p}
+                        style={[styles.filterChip, newPriority === p && styles.filterChipActive]}
+                        onPress={() => setNewPriority(p)}
+                      >
+                        <Text style={[styles.filterChipText, newPriority === p && styles.filterChipTextActive]}>{p.charAt(0).toUpperCase() + p.slice(1)}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddAnnouncement}>
+                  <Text style={styles.gmailCreateButtonText}>Add Announcement</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                  setShowAddModal(false);
+                  setNewTitle('');
+                  setNewContent('');
+                  setNewPriority('medium');
+                }}>
+                  <Text style={styles.gmailSignInText}>Cancel</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -1748,88 +1775,82 @@ const MembersScreen = ({ user }) => {
         <Modal visible={showAddMemberModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
             <View style={styles.registerModal}>
-              <Text style={styles.gmailModalTitle}>Add New Member</Text>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>First Name *</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newMemberFirstName}
-                  onChangeText={setNewMemberFirstName}
-                  placeholder="Enter first name"
-                />
-              </View>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Last Name *</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newMemberLastName}
-                  onChangeText={setNewMemberLastName}
-                  placeholder="Enter last name"
-                />
-              </View>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Email *</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newMemberEmail}
-                  onChangeText={setNewMemberEmail}
-                  placeholder="Enter email address"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Home Number *</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newMemberHomeNumber}
-                  onChangeText={setNewMemberHomeNumber}
-                  placeholder="Enter home number"
-                />
-              </View>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Phone Number</Text>
-                <TextInput
-                  style={styles.gmailInput}
-                  value={newMemberPhoneNumber}
-                  onChangeText={setNewMemberPhoneNumber}
-                  placeholder="Enter phone number"
-                  keyboardType="phone-pad"
-                />
-              </View>
-              
-              <View style={styles.gmailInputGroup}>
-                <Text style={styles.gmailInputLabel}>Address</Text>
-                <TextInput
-                  style={[styles.gmailInput, { height: 60, textAlignVertical: 'top' }]}
-                  value={newMemberAddress}
-                  onChangeText={setNewMemberAddress}
-                  placeholder="Enter address"
-                  multiline
-                  numberOfLines={3}
-                />
-              </View>
-              
-              <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddMember}>
-                <Text style={styles.gmailCreateButtonText}>Add Member</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
-                setShowAddMemberModal(false);
-                setNewMemberFirstName('');
-                setNewMemberLastName('');
-                setNewMemberEmail('');
-                setNewMemberHomeNumber('');
-                setNewMemberPhoneNumber('');
-                setNewMemberAddress('');
-              }}>
-                <Text style={styles.gmailSignInText}>Cancel</Text>
-              </TouchableOpacity>
+              <ScrollView contentContainerStyle={{padding: 24}} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <Text style={styles.gmailModalTitle}>Add New Member</Text>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>First Name *</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newMemberFirstName}
+                    onChangeText={setNewMemberFirstName}
+                    placeholder="Enter first name"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Last Name *</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newMemberLastName}
+                    onChangeText={setNewMemberLastName}
+                    placeholder="Enter last name"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Email *</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newMemberEmail}
+                    onChangeText={setNewMemberEmail}
+                    placeholder="Enter email address"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Home Number *</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newMemberHomeNumber}
+                    onChangeText={setNewMemberHomeNumber}
+                    placeholder="Enter home number"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Phone Number</Text>
+                  <TextInput
+                    style={styles.gmailInput}
+                    value={newMemberPhoneNumber}
+                    onChangeText={setNewMemberPhoneNumber}
+                    placeholder="Enter phone number"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+                <View style={styles.gmailInputGroup}>
+                  <Text style={styles.gmailInputLabel}>Address</Text>
+                  <TextInput
+                    style={[styles.gmailInput, { height: 60, textAlignVertical: 'top' }]}
+                    value={newMemberAddress}
+                    onChangeText={setNewMemberAddress}
+                    placeholder="Enter address"
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+                <TouchableOpacity style={styles.gmailCreateButton} onPress={handleAddMember}>
+                  <Text style={styles.gmailCreateButtonText}>Add Member</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.gmailSignInLink} onPress={() => {
+                  setShowAddMemberModal(false);
+                  setNewMemberFirstName('');
+                  setNewMemberLastName('');
+                  setNewMemberEmail('');
+                  setNewMemberHomeNumber('');
+                  setNewMemberPhoneNumber('');
+                  setNewMemberAddress('');
+                }}>
+                  <Text style={styles.gmailSignInText}>Cancel</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
