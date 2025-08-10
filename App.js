@@ -1494,26 +1494,26 @@ const MembersScreen = ({ user }) => {
     return matchesSearch && matchesFilter;
   });
 
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
-      const membersRef = collection(db, 'members');
-      const q = query(membersRef, orderBy('lastName'));
-      const querySnapshot = await getDocs(q);
-      
+  useEffect(() => {
+    setLoading(true);
+    const membersRef = collection(db, 'members');
+    const q = query(membersRef, orderBy('lastName'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      console.log('Members snapshot received:', querySnapshot.docs.length, 'members');
       const membersData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
+      console.log('Setting members:', membersData.length);
       setMembers(membersData);
-    } catch (error) {
-      console.error('Error fetching members:', error);
-      Alert.alert('Error', 'Failed to load members');
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      console.error('Error listening to members:', error);
+      Alert.alert('Error', 'Failed to load members: ' + error.message);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addMember = async (memberData) => {
     try {
@@ -1523,7 +1523,6 @@ const MembersScreen = ({ user }) => {
         createdAt: new Date(),
         status: 'active'
       });
-      fetchMembers();
       Alert.alert('Success', 'Member added successfully!');
     } catch (error) {
       console.error('Error adding member:', error);
@@ -1535,11 +1534,23 @@ const MembersScreen = ({ user }) => {
     try {
       const memberRef = doc(db, 'members', memberId);
       await updateDoc(memberRef, updates);
-      fetchMembers();
       Alert.alert('Success', 'Member updated successfully!');
     } catch (error) {
       console.error('Error updating member:', error);
-      Alert.alert('Error', 'Failed to update member');
+      if (error.message.includes('No document to update')) {
+        Alert.alert('Error', 'Member no longer exists. Please refresh the list.');
+        // Force refresh the members list
+        const membersRef = collection(db, 'members');
+        const q = query(membersRef, orderBy('lastName'));
+        const querySnapshot = await getDocs(q);
+        const membersData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setMembers(membersData);
+      } else {
+        Alert.alert('Error', 'Failed to update member: ' + error.message);
+      }
     }
   };
 
@@ -1547,11 +1558,29 @@ const MembersScreen = ({ user }) => {
     try {
       const memberRef = doc(db, 'members', memberId);
       await deleteDoc(memberRef);
-      fetchMembers();
       Alert.alert('Success', 'Member deleted successfully!');
     } catch (error) {
       console.error('Error deleting member:', error);
       Alert.alert('Error', 'Failed to delete member');
+    }
+  };
+
+  const refreshMembers = async () => {
+    try {
+      setLoading(true);
+      const membersRef = collection(db, 'members');
+      const q = query(membersRef, orderBy('lastName'));
+      const querySnapshot = await getDocs(q);
+      const membersData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMembers(membersData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error refreshing members:', error);
+      Alert.alert('Error', 'Failed to refresh members');
+      setLoading(false);
     }
   };
 
@@ -1567,7 +1596,6 @@ const MembersScreen = ({ user }) => {
           onPress: async () => {
             try {
               await deleteDoc(doc(db, 'members', memberId));
-              fetchMembers();
               Alert.alert('Success', 'Member deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete member: ' + error.message);
@@ -1578,9 +1606,7 @@ const MembersScreen = ({ user }) => {
     );
   };
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
+  // Remove this useEffect since we're using onSnapshot now
 
   const getStatusColor = (status) => {
     return status === 'active' ? '#4CAF50' : '#FF9800';
@@ -1621,7 +1647,6 @@ const MembersScreen = ({ user }) => {
               // Accept: update address and clear pendingAddress
               const docRef = doc(db, 'members', item.id);
               await updateDoc(docRef, { address: item.pendingAddress, pendingAddress: '' });
-              fetchMembers();
             }} style={{ marginLeft: 8 }}>
               <Ionicons name="checkmark-circle-outline" size={20} color="#4CAF50" />
             </TouchableOpacity>
@@ -1629,7 +1654,6 @@ const MembersScreen = ({ user }) => {
               // Reject: clear pendingAddress
               const docRef = doc(db, 'members', item.id);
               await updateDoc(docRef, { pendingAddress: '' });
-              fetchMembers();
             }} style={{ marginLeft: 8 }}>
               <Ionicons name="close-circle-outline" size={20} color="#FF5252" />
             </TouchableOpacity>
@@ -1693,7 +1717,6 @@ const MembersScreen = ({ user }) => {
       setNewMemberPhoneNumber('');
       setNewMemberAddress('');
       
-      fetchMembers();
       Alert.alert('Success', 'Member added successfully!');
     } catch (error) {
       Alert.alert('Error', 'Failed to add member: ' + error.message);
@@ -1707,12 +1730,20 @@ const MembersScreen = ({ user }) => {
           <Text style={styles.membersTitle}>Community Members</Text>
           <Text style={styles.membersSubtitle}>{filtered.length} members found</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.addMemberButton} 
-          onPress={() => setShowAddMemberModal(true)}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity 
+            style={[styles.addMemberButton, { backgroundColor: '#666', width: 44, height: 44 }]} 
+            onPress={refreshMembers}
+          >
+            <Ionicons name="refresh" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.addMemberButton} 
+            onPress={() => setShowAddMemberModal(true)}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>

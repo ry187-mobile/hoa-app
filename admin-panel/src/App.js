@@ -84,6 +84,7 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadingResolved, setLoadingResolved] = useState(true);
   const [loadingEndedEvents, setLoadingEndedEvents] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -176,6 +177,11 @@ function DashboardPage() {
       snap => {
         setRecentEndedEvents(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setLoadingEndedEvents(false);
+      },
+      error => {
+        setRecentEndedEvents([]);
+        setLoadingEndedEvents(false);
+        console.error('Ended events snapshot error:', error);
       }
     );
     return () => unsub();
@@ -594,6 +600,7 @@ function MembersPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [actionLoading, setActionLoading] = useState({});
 
   useEffect(() => {
     setLoading(true);
@@ -603,6 +610,26 @@ function MembersPage() {
     });
     return () => unsub();
   }, []);
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this member? This action cannot be undone.')) {
+      setActionLoading(prev => ({ ...prev, [id]: true }));
+      try {
+        await deleteDoc(doc(db, 'members', id));
+        // Also delete from users collection if exists
+        try {
+          await deleteDoc(doc(db, 'users', id));
+        } catch (e) {
+          console.log('User document not found or already deleted');
+        }
+      } catch (error) {
+        console.error('Error deleting member:', error);
+        alert('Failed to delete member. Please try again.');
+      } finally {
+        setActionLoading(prev => ({ ...prev, [id]: false }));
+      }
+    }
+  };
 
   const filtered = members.filter(m => {
     const q = search.toLowerCase();
@@ -636,6 +663,16 @@ function MembersPage() {
                   <Typography color="text.secondary" sx={{ fontSize: 14 }}>{mem.email || ''}</Typography>
                   <Typography color="secondary" sx={{ fontSize: 13, mt: 0.5 }}>Home: {mem.homeNumber || ''}</Typography>
                 </Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  disabled={!!actionLoading[mem.id]}
+                  onClick={() => handleDelete(mem.id)}
+                  startIcon={actionLoading[mem.id] ? <CircularProgress size={16} /> : null}
+                >
+                  {actionLoading[mem.id] ? 'Deleting...' : 'Delete'}
+                </Button>
               </Paper>
             ))}
           </Stack>
@@ -646,6 +683,38 @@ function MembersPage() {
 }
 
 function CustomAppBar() {
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    // Listen for new members (notifications)
+    const unsub = onSnapshot(
+      query(collection(db, 'members'), orderBy('createdAt', 'desc'), limit(10)),
+      snap => {
+        const newNotifications = snap.docs.map(doc => ({
+          id: doc.id,
+          type: 'new_member',
+          title: 'New Member Registered',
+          message: `${doc.data().firstName || ''} ${doc.data().lastName || ''} has joined the community`,
+          timestamp: doc.data().createdAt || new Date(),
+          read: false
+        }));
+        setNotifications(newNotifications);
+        setUnreadCount(newNotifications.filter(n => !n.read).length);
+      }
+    );
+    return () => unsub();
+  }, []);
+
+  const handleNotificationClick = (notification) => {
+    // Mark as read
+    setNotifications(prev => prev.map(n => 
+      n.id === notification.id ? { ...n, read: true } : n
+    ));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
   return (
     <AppBar position="fixed" color="primary" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -662,11 +731,64 @@ function CustomAppBar() {
             </IconButton>
             <InputBase sx={{ ml: 1, flex: 1, fontSize: 15 }} placeholder="Search" inputProps={{ 'aria-label': 'search' }} />
           </Paper>
-          <IconButton sx={{ color: '#1B365D' }}>
-            <Badge color="secondary" variant="dot" overlap="circular">
-              <NotificationsNoneIcon />
-            </Badge>
-          </IconButton>
+          <Box sx={{ position: 'relative' }}>
+            <IconButton 
+              sx={{ color: '#1B365D' }}
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Badge badgeContent={unreadCount} color="error" overlap="circular">
+                <NotificationsNoneIcon />
+              </Badge>
+            </IconButton>
+            {showNotifications && (
+              <Paper sx={{ 
+                position: 'absolute', 
+                top: '100%', 
+                right: 0, 
+                mt: 1, 
+                width: 320, 
+                maxHeight: 400, 
+                overflow: 'auto',
+                zIndex: 1000,
+                boxShadow: 3
+              }}>
+                <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>Notifications</Typography>
+                </Box>
+                {notifications.length === 0 ? (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography color="text.secondary">No notifications</Typography>
+                  </Box>
+                ) : (
+                  <Stack>
+                    {notifications.slice(0, 5).map(notification => (
+                      <Box 
+                        key={notification.id}
+                        sx={{ 
+                          p: 2, 
+                          borderBottom: '1px solid #f0f0f0',
+                          cursor: 'pointer',
+                          bgcolor: notification.read ? 'transparent' : '#f8f9fa',
+                          '&:hover': { bgcolor: '#f5f5f5' }
+                        }}
+                        onClick={() => handleNotificationClick(notification)}
+                      >
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                          {notification.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {notification.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {timeAgo(notification.timestamp)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            )}
+          </Box>
           <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>
             <PersonIcon sx={{ color: '#fff' }} />
           </Avatar>
