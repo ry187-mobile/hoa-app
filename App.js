@@ -105,7 +105,7 @@ const upcomingEvents = events.length;
         {/* Welcome Card */}
         <View style={styles.dashboardWelcomeCardModern}>
           <Text style={styles.dashboardWelcomeTitleModern}>Welcome back, {user?.firstName || 'User'}!</Text>
-          <Text style={styles.dashboardWelcomeSubtitleModern}>Here's what's happening in Blessed Sapphire</Text>
+          <Text style={styles.dashboardWelcomeSubtitleModern}>Stay informed with the latest updates and events in our Community!</Text>
         </View>
 
         {/* Stats Row */}
