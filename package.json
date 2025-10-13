@@ -9,14 +9,14 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/config-plugins": "~10.1.1",
     "@expo/vector-icons": "^14.1.0",
     "@react-navigation/bottom-tabs": "^7.4.2",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/stack": "^7.4.2",
     "emailjs-com": "^3.2.0",
-    "expo": "53.0.20",
+    "expo": "~53.0.23",
     "expo-auth-session": "^6.2.1",
+    "expo-font": "~13.3.2",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",
     "firebase": "^11.10.0",
@@ -37,7 +37,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@react-native-community/cli": "^18.0.0"
+    "@react-native-community/cli": "^18.0.0",
+    "jsdoc": "^4.0.5"
   },
   "private": true
 }

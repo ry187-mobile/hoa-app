@@ -93,13 +93,14 @@ const upcomingEvents = events.length;
   console.log('Dashboard: Recent announcements to display:', recentAnnouncements.length, recentAnnouncements);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-      <StatusBar style="dark" translucent backgroundColor="transparent" />
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
       <ScrollView
         contentContainerStyle={{
           padding: 20,
-          paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 32 : 20,
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
         }}
+        showsVerticalScrollIndicator={false}
       >
         {/* Welcome Card */}
         <View style={styles.dashboardWelcomeCardModern}>
@@ -187,7 +188,7 @@ const upcomingEvents = events.length;
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 import { NavigationContainer } from '@react-navigation/native';
@@ -206,58 +207,6 @@ import BSNALogo from './assets/bsna-logo.png';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
-
-// Mock data for the app
-const mockEvents = [
-  {
-    id: 1,
-    title: 'Monthly Board Meeting',
-    date: '2025-07-15',
-    time: '7:00 PM',
-    location: 'Community Center',
-    description: 'Monthly board meeting to discuss community matters and budget updates.'
-  },
-  {
-    id: 2,
-    title: 'Pool Party',
-    date: '2025-07-20',
-    time: '2:00 PM',
-    location: 'Community Pool',
-    description: 'Family-friendly pool party with food and games for all residents.'
-  },
-  {
-    id: 3,
-    title: 'Landscaping Committee',
-    date: '2025-07-25',
-    time: '6:00 PM',
-    location: 'Clubhouse',
-    description: 'Planning meeting for upcoming landscaping improvements.'
-  }
-];
-
-const mockAnnouncements = [
-  {
-    id: 1,
-    title: 'New Parking Rules',
-    date: '2025-07-01',
-    content: 'Please note the new parking regulations that will take effect on July 15th. All vehicles must display parking permits.',
-    priority: 'high'
-  },
-  {
-    id: 2,
-    title: 'Pool Maintenance Schedule',
-    date: '2025-07-03',
-    content: 'The community pool will be closed for maintenance on July 10th and 11th. We apologize for any inconvenience.',
-    priority: 'medium'
-  },
-  {
-    id: 3,
-    title: 'Community Garden Update',
-    date: '2025-07-05',
-    content: 'New plots are available in the community garden. Contact the office to reserve your spot.',
-    priority: 'low'
-  }
-];
 
 // Login Screen Component
 WebBrowser.maybeCompleteAuthSession();
@@ -351,13 +300,13 @@ const LoginScreen = ({ navigation }) => {
     const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setOtp(generatedOtp);
     try {
-      // Use EmailJS REST API via fetch (works in React Native)
+      // Use EmailJS REST API via fetch 
       const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'origin': 'http://localhost', // EmailJS requires an origin header
-          'Authorization': 'Bearer -AH8iXGIeO_xOyBb1', // Your public key
+          'origin': 'http://localhost', 
+          'Authorization': 'Bearer -AH8iXGIeO_xOyBb1', 
         },
         body: JSON.stringify({
           service_id: 'service_to0z59v',
@@ -520,7 +469,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.loginContainer}>
         <Image
           source={BSNALogo}
@@ -877,64 +826,89 @@ const EventsScreen = ({ user }) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.eventsModernHeader}>
-        <View className="headerContent">
-          <Text style={styles.eventsModernTitle}>Community Events</Text>
-          <Text style={styles.eventsModernSubtitle}>{filtered.length} events</Text>
-        </View>
-        {user?.role === 'admin' && (
-          <TouchableOpacity style={styles.eventsAddButton} onPress={() => setShowAddModal(true)}>
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
-        )}
-      </View>
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          {user?.role === 'admin' && (
-            <>
-              <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
-                <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.filterChip, filter === 'upcoming' && styles.filterChipActive]} onPress={() => setFilter('upcoming')}>
-                <Text style={[styles.filterChipText, filter === 'upcoming' && styles.filterChipTextActive]}>Upcoming</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.filterChip, filter === 'ended' && styles.filterChipActive]} onPress={() => setFilter('ended')}>
-                <Text style={[styles.filterChipText, filter === 'ended' && styles.filterChipTextActive]}>Ended</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          {user?.role !== 'admin' && (
-            <>
-              <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
-                <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.filterChip, filter === 'meeting' && styles.filterChipActive]} onPress={() => setFilter('meeting')}>
-                <Text style={[styles.filterChipText, filter === 'meeting' && styles.filterChipTextActive]}>Meeting</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.filterChip, filter === 'party' && styles.filterChipActive]} onPress={() => setFilter('party')}>
-                <Text style={[styles.filterChipText, filter === 'party' && styles.filterChipTextActive]}>Party</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.filterChip, filter === 'committee' && styles.filterChipActive]} onPress={() => setFilter('committee')}>
-                <Text style={[styles.filterChipText, filter === 'committee' && styles.filterChipTextActive]}>Committee</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </ScrollView>
-      </View>
-      <FlatList
-        data={filtered}
-        renderItem={renderEvent}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.eventsModernList}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>No events</Text>
-            <Text style={styles.emptySubtitle}>Tap + to add a new event</Text>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.eventsModernHeader}>
+          <View className="headerContent">
+            <Text style={styles.eventsModernTitle}>Community Events</Text>
+            <Text style={styles.eventsModernSubtitle}>{filtered.length} events</Text>
           </View>
-        }
-      />
+          {user?.role === 'admin' && (
+            <TouchableOpacity style={styles.eventsAddButton} onPress={() => setShowAddModal(true)}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            {user?.role === 'admin' && (
+              <>
+                <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+                  <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.filterChip, filter === 'upcoming' && styles.filterChipActive]} onPress={() => setFilter('upcoming')}>
+                  <Text style={[styles.filterChipText, filter === 'upcoming' && styles.filterChipTextActive]}>Upcoming</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.filterChip, filter === 'ended' && styles.filterChipActive]} onPress={() => setFilter('ended')}>
+                  <Text style={[styles.filterChipText, filter === 'ended' && styles.filterChipTextActive]}>Ended</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {user?.role !== 'admin' && (
+              <>
+                <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+                  <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.filterChip, filter === 'meeting' && styles.filterChipActive]} onPress={() => setFilter('meeting')}>
+                  <Text style={[styles.filterChipText, filter === 'meeting' && styles.filterChipTextActive]}>Meeting</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.filterChip, filter === 'party' && styles.filterChipActive]} onPress={() => setFilter('party')}>
+                  <Text style={[styles.filterChipText, filter === 'party' && styles.filterChipTextActive]}>Party</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.filterChip, filter === 'committee' && styles.filterChipActive]} onPress={() => setFilter('committee')}>
+                  <Text style={[styles.filterChipText, filter === 'committee' && styles.filterChipTextActive]}>Committee</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </View>
+        <View style={{ padding: 20 }}>
+          {filtered.map(item => (
+            <View key={item.id} style={styles.eventModernCard}>
+              <View style={styles.eventModernHeader}>
+                <Text style={styles.eventModernTitle}>{item.title}</Text>
+                <View style={[styles.eventModernBadge, { backgroundColor: getTypeColor(item.type) }]}> 
+                  <Text style={styles.eventModernBadgeText}>{item.type?.toUpperCase()}</Text>
+                </View>
+              </View>
+              <Text style={styles.eventModernDate}>{item.date} • {item.time}</Text>
+              <Text style={styles.eventModernLocation}><Ionicons name="location-outline" size={14} color="#666" /> {item.location}</Text>
+              <Text style={styles.eventModernDescription}>{item.description}</Text>
+              <Text style={{ color: item.priority === 'high' ? '#f44336' : item.priority === 'medium' ? '#ff9800' : item.priority === 'low' ? '#4caf50' : '#888', fontWeight: 'bold', marginTop: 4 }}>
+                Priority: {item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Medium'}
+              </Text>
+              {user?.role === 'admin' && (
+                <TouchableOpacity style={styles.eventDeleteButton} onPress={() => handleDeleteEvent(item.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+          {filtered.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="calendar-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyTitle}>No events</Text>
+              <Text style={styles.emptySubtitle}>Tap + to add a new event</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
       {/* Add Event Modal (admin only) */}
       {user?.role === 'admin' && (
         <Modal visible={showAddModal} animationType="slide" transparent>
@@ -1027,7 +1001,7 @@ const EventsScreen = ({ user }) => {
           </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1162,42 +1136,81 @@ const RequestsScreen = ({ user }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.requestsModernHeader}>
-        <View style={styles.headerContent}>
-          <Text style={styles.requestsModernTitle}>HOA Requests</Text>
-          <Text style={styles.requestsModernSubtitle}>{filtered.length} requests</Text>
-        </View>
-        <TouchableOpacity style={styles.requestsAddButton} onPress={() => setShowAddModal(true)}>
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
-            <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'Pending' && styles.filterChipActive]} onPress={() => setFilter('Pending')}>
-            <Text style={[styles.filterChipText, filter === 'Pending' && styles.filterChipTextActive]}>Pending</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'Resolved' && styles.filterChipActive]} onPress={() => setFilter('Resolved')}>
-            <Text style={[styles.filterChipText, filter === 'Resolved' && styles.filterChipTextActive]}>Resolved</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-      <FlatList
-        data={filtered}
-        renderItem={renderRequest}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.requestsModernList}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="document-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>No requests</Text>
-            <Text style={styles.emptySubtitle}>Tap + to submit a request</Text>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.requestsModernHeader}>
+          <View style={styles.headerContent}>
+            <Text style={styles.requestsModernTitle}>HOA Requests</Text>
+            <Text style={styles.requestsModernSubtitle}>{filtered.length} requests</Text>
           </View>
-        }
-      />
+          <TouchableOpacity style={styles.requestsAddButton} onPress={() => setShowAddModal(true)}>
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+              <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, filter === 'Pending' && styles.filterChipActive]} onPress={() => setFilter('Pending')}>
+              <Text style={[styles.filterChipText, filter === 'Pending' && styles.filterChipTextActive]}>Pending</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, filter === 'Resolved' && styles.filterChipActive]} onPress={() => setFilter('Resolved')}>
+              <Text style={[styles.filterChipText, filter === 'Resolved' && styles.filterChipTextActive]}>Resolved</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+        <View style={{ padding: 20 }}>
+          {filtered.map(item => (
+            <View key={item.id} style={styles.requestModernCard}>
+              <View style={styles.requestModernHeader}>
+                <Text style={styles.requestModernTitle}>{item.title}</Text>
+                <View style={[styles.requestModernBadge, { backgroundColor: getStatusColor(item.status) }]}> 
+                  <Text style={styles.requestModernBadgeText}>{item.status}</Text>
+                </View>
+              </View>
+              <Text style={styles.requestModernDate}>{item.date}</Text>
+              <Text style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>Type: {item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'General'}</Text>
+              <Text style={styles.requestModernDescription}>{item.description}</Text>
+              <View style={styles.requestActionButtons}>
+                {user?.role === 'admin' && (
+                  <TouchableOpacity 
+                    style={[styles.requestStatusButton, { backgroundColor: item.status === 'Pending' ? '#4CAF50' : '#FF9800' }]} 
+                    onPress={() => handleUpdateStatus(item.id, item.status)}
+                  >
+                    <Ionicons 
+                      name={item.status === 'Pending' ? 'checkmark-circle-outline' : 'time-outline'} 
+                      size={16} 
+                      color="#fff" 
+                    />
+                    <Text style={styles.requestStatusButtonText}>
+                      {item.status === 'Pending' ? 'Mark Resolved' : 'Mark Pending'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {user?.role === 'admin' && (
+                  <TouchableOpacity style={styles.requestDeleteButton} onPress={() => handleDeleteRequest(item.id)}>
+                    <Ionicons name="trash-outline" size={20} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          ))}
+          {filtered.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="document-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyTitle}>No requests</Text>
+              <Text style={styles.emptySubtitle}>Tap + to submit a request</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
       {/* Add Request Modal */}
       <Modal visible={showAddModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -1255,7 +1268,7 @@ const RequestsScreen = ({ user }) => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1364,47 +1377,71 @@ const AnnouncementsScreen = ({ user }) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.announcementsModernHeader}>
-        <View className="headerContent">
-          <Text style={styles.announcementsModernTitle}>Announcements</Text>
-          <Text style={styles.announcementsModernSubtitle}>{filtered.length} announcements</Text>
-        </View>
-        {user?.role === 'admin' && (
-          <TouchableOpacity style={styles.announcementsAddButton} onPress={() => setShowAddModal(true)}>
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
-        )}
-      </View>
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
-            <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'high' && styles.filterChipActive]} onPress={() => setFilter('high')}>
-            <Text style={[styles.filterChipText, filter === 'high' && styles.filterChipTextActive]}>High</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'medium' && styles.filterChipActive]} onPress={() => setFilter('medium')}>
-            <Text style={[styles.filterChipText, filter === 'medium' && styles.filterChipTextActive]}>Medium</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterChip, filter === 'low' && styles.filterChipActive]} onPress={() => setFilter('low')}>
-            <Text style={[styles.filterChipText, filter === 'low' && styles.filterChipTextActive]}>Low</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-      <FlatList
-        data={filtered}
-        renderItem={renderAnnouncement}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.announcementsModernList}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="megaphone-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>No announcements</Text>
-            <Text style={styles.emptySubtitle}>Tap + to add a new announcement</Text>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.announcementsModernHeader}>
+          <View className="headerContent">
+            <Text style={styles.announcementsModernTitle}>Announcements</Text>
+            <Text style={styles.announcementsModernSubtitle}>{filtered.length} announcements</Text>
           </View>
-        }
-      />
+          {user?.role === 'admin' && (
+            <TouchableOpacity style={styles.announcementsAddButton} onPress={() => setShowAddModal(true)}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            <TouchableOpacity style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} onPress={() => setFilter('all')}>
+              <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, filter === 'high' && styles.filterChipActive]} onPress={() => setFilter('high')}>
+              <Text style={[styles.filterChipText, filter === 'high' && styles.filterChipTextActive]}>High</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, filter === 'medium' && styles.filterChipActive]} onPress={() => setFilter('medium')}>
+              <Text style={[styles.filterChipText, filter === 'medium' && styles.filterChipTextActive]}>Medium</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, filter === 'low' && styles.filterChipActive]} onPress={() => setFilter('low')}>
+              <Text style={[styles.filterChipText, filter === 'low' && styles.filterChipTextActive]}>Low</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+        <View style={{ padding: 20 }}>
+          {filtered.map(item => (
+            <View key={item.id} style={styles.announcementModernCard}>
+              <View style={styles.announcementModernHeader}>
+                <Text style={styles.announcementModernTitle}>{item.title}</Text>
+                <View style={[styles.announcementModernBadge, { backgroundColor: getPriorityColor(item.priority) }]}> 
+                  <Text style={styles.announcementModernBadgeText}>{item.priority?.toUpperCase()}</Text>
+                </View>
+              </View>
+              <Text style={styles.announcementModernDate}>{item.date}</Text>
+              <Text style={styles.announcementModernContent}>{item.content}</Text>
+              <Text style={{ color: getPriorityColor(item.priority), fontWeight: 'bold', marginTop: 4 }}>
+                Priority: {item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Medium'}
+              </Text>
+              {user?.role === 'admin' && (
+                <TouchableOpacity style={styles.announcementDeleteButton} onPress={() => handleDeleteAnnouncement(item.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+          {filtered.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="megaphone-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyTitle}>No announcements</Text>
+              <Text style={styles.emptySubtitle}>Tap + to add a new announcement</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
       {/* Add Announcement Modal (admin only) */}
       {user?.role === 'admin' && (
         <Modal visible={showAddModal} animationType="slide" transparent>
@@ -1464,7 +1501,7 @@ const AnnouncementsScreen = ({ user }) => {
           </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1627,9 +1664,6 @@ const MembersScreen = ({ user }) => {
             <Ionicons name="home-outline" size={14} color="#666" />
             <Text style={styles.homeNumber}>{item.homeNumber}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}> 
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
         </View>
         {/* Show address if available */}
         {item.address && (
@@ -1662,20 +1696,23 @@ const MembersScreen = ({ user }) => {
         {/* Admin-only activate/deactivate button */}
         {user?.role === 'admin' && (
           <TouchableOpacity
-            style={{ marginTop: 8, alignSelf: 'flex-start', backgroundColor: item.status === 'active' ? '#FF9800' : '#4CAF50', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 14 }}
+            style={[styles.memberStatusButton, { backgroundColor: item.status === 'active' ? '#FF9800' : '#4CAF50' }]}
             onPress={() => updateMember(item.id, { status: item.status === 'active' ? 'inactive' : 'active' })}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>{item.status === 'active' ? 'Set Inactive' : 'Set Active'}</Text>
+            <Text style={styles.memberStatusButtonText}>{item.status === 'active' ? 'Set Inactive' : 'Set Active'}</Text>
           </TouchableOpacity>
         )}
       </View>
-      <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-      <TouchableOpacity style={styles.contactButton}>
-        <Ionicons name="mail-outline" size={20} color="#2196F3" />
-      </TouchableOpacity>
-
-    </View>
+      <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <TouchableOpacity style={styles.contactButton}>
+          <Ionicons name="mail-outline" size={20} color="#fff" />
+        </TouchableOpacity>
+        
+        {/* Status badge positioned between email and delete */}
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}> 
+          <Text style={styles.statusText}>{item.status}</Text>
+        </View>
+        
         {/* Admin-only delete button */}
         {user?.role === 'admin' && (
           <TouchableOpacity 
@@ -1724,83 +1761,154 @@ const MembersScreen = ({ user }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.membersHeader}>
-        <View style={styles.headerContent}>
-          <Text style={styles.membersTitle}>Community Members</Text>
-          <Text style={styles.membersSubtitle}>{filtered.length} members found</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity 
-            style={[styles.addMemberButton, { backgroundColor: '#666', width: 44, height: 44 }]} 
-            onPress={refreshMembers}
-          >
-            <Ionicons name="refresh" size={20} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.addMemberButton} 
-            onPress={() => setShowAddMemberModal(true)}
-          >
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBox}>
-          <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search members..."
-            placeholderTextColor="#999"
-            value={search}
-            onChangeText={setSearch}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#999" />
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.membersHeader}>
+          <View style={styles.headerContent}>
+            <Text style={styles.membersTitle}>Community Members</Text>
+            <Text style={styles.membersSubtitle}>{filtered.length} members found</Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity 
+              style={[styles.addMemberButton, { backgroundColor: '#666', width: 50, height: 50 }]} 
+              onPress={refreshMembers}
+            >
+              <Ionicons name="refresh" size={24} color="#fff" />
             </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.addMemberButton} 
+              onPress={() => setShowAddMemberModal(true)}
+            >
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBox}>
+            <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search members..."
+              placeholderTextColor="#999"
+              value={search}
+              onChangeText={setSearch}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            <TouchableOpacity 
+              style={[styles.filterChip, selectedFilter === 'all' && styles.filterChipActive]}
+              onPress={() => setSelectedFilter('all')}
+            >
+              <Text style={[styles.filterChipText, selectedFilter === 'all' && styles.filterChipTextActive]}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterChip, selectedFilter === 'active' && styles.filterChipActive]}
+              onPress={() => setSelectedFilter('active')}
+            >
+              <Text style={[styles.filterChipText, selectedFilter === 'active' && styles.filterChipTextActive]}>Active</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterChip, selectedFilter === 'inactive' && styles.filterChipActive]}
+              onPress={() => setSelectedFilter('inactive')}
+            >
+              <Text style={[styles.filterChipText, selectedFilter === 'inactive' && styles.filterChipTextActive]}>Inactive</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        <View style={{ padding: 20 }}>
+          {filtered.map(item => (
+            <View key={item.id} style={styles.memberCard}>
+              <View style={styles.memberAvatar}>
+                <Text style={styles.avatarText}>{item.avatar || '👤'}</Text>
+              </View>
+              <View style={styles.memberInfo}>
+                <Text style={styles.memberName}>{`${item.firstName} ${item.lastName}`}</Text>
+                <Text style={styles.memberEmail}>{item.email}</Text>
+                <View style={styles.memberMeta}>
+                  <View style={styles.homeNumberContainer}>
+                    <Ionicons name="home-outline" size={14} color="#666" />
+                    <Text style={styles.homeNumber}>{item.homeNumber}</Text>
+                  </View>
+                </View>
+                {item.address && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                    <Ionicons name="location-outline" size={16} color="#888" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 14, color: '#333' }}>{item.address}</Text>
+                  </View>
+                )}
+                {user?.role === 'admin' && item.pendingAddress && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+                    <Ionicons name="time-outline" size={16} color="#FFA726" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 14, color: '#FFA726', flex: 1 }}>Pending address: {item.pendingAddress}</Text>
+                    <TouchableOpacity onPress={async () => {
+                      const docRef = doc(db, 'members', item.id);
+                      await updateDoc(docRef, { address: item.pendingAddress, pendingAddress: '' });
+                    }} style={{ marginLeft: 8 }}>
+                      <Ionicons name="checkmark-circle-outline" size={20} color="#4CAF50" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={async () => {
+                      const docRef = doc(db, 'members', item.id);
+                      await updateDoc(docRef, { pendingAddress: '' });
+                    }} style={{ marginLeft: 8 }}>
+                      <Ionicons name="close-circle-outline" size={20} color="#FF5252" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {user?.role === 'admin' && (
+                  <TouchableOpacity
+                    style={[styles.memberStatusButton, { backgroundColor: item.status === 'active' ? '#FF9800' : '#4CAF50' }]}
+                    onPress={() => updateMember(item.id, { status: item.status === 'active' ? 'inactive' : 'active' })}
+                  >
+                    <Text style={styles.memberStatusButtonText}>{item.status === 'active' ? 'Set Inactive' : 'Set Active'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <TouchableOpacity style={styles.contactButton}>
+                  <Ionicons name="mail-outline" size={20} color="#fff" />
+                </TouchableOpacity>
+                
+                {/* Status badge positioned between email and delete */}
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}> 
+                  <Text style={styles.statusText}>{item.status}</Text>
+                </View>
+                
+                {user?.role === 'admin' && (
+                  <TouchableOpacity 
+                    style={styles.memberDeleteButton}
+                    onPress={() => handleDeleteMember(item.id, `${item.firstName} ${item.lastName}`)}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          ))}
+          {filtered.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyTitle}>No members found</Text>
+              <Text style={styles.emptySubtitle}>Try adjusting your search or filters</Text>
+            </View>
           )}
         </View>
-      </View>
-
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity 
-            style={[styles.filterChip, selectedFilter === 'all' && styles.filterChipActive]}
-            onPress={() => setSelectedFilter('all')}
-          >
-            <Text style={[styles.filterChipText, selectedFilter === 'all' && styles.filterChipTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterChip, selectedFilter === 'active' && styles.filterChipActive]}
-            onPress={() => setSelectedFilter('active')}
-          >
-            <Text style={[styles.filterChipText, selectedFilter === 'active' && styles.filterChipTextActive]}>Active</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterChip, selectedFilter === 'inactive' && styles.filterChipActive]}
-            onPress={() => setSelectedFilter('inactive')}
-          >
-            <Text style={[styles.filterChipText, selectedFilter === 'inactive' && styles.filterChipTextActive]}>Inactive</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-
-      <FlatList
-        data={filtered}
-        renderItem={renderMember}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.membersList}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>No members found</Text>
-            <Text style={styles.emptySubtitle}>Try adjusting your search or filters</Text>
-          </View>
-        }
-      />
+      </ScrollView>
       {/* Add Member Modal (admin only) */}
       {user?.role === 'admin' && (
         <Modal visible={showAddMemberModal} animationType="slide" transparent>
@@ -1886,7 +1994,7 @@ const MembersScreen = ({ user }) => {
           </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1943,8 +2051,17 @@ const ProfileScreen = ({ navigation, user }) => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#f0f2f5' }]}> 
-      <ScrollView contentContainerStyle={{ alignItems: 'center', padding: 20, paddingBottom: 40 }}>
+    <View style={{ flex: 1, backgroundColor: '#f0f2f5' }}> 
+      <StatusBar barStyle="dark-content" backgroundColor="#f0f2f5" />
+      <ScrollView 
+        contentContainerStyle={{ 
+          alignItems: 'center', 
+          padding: 20, 
+          paddingBottom: 40,
+          paddingTop: Platform.OS === 'android' ? 50 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Card */}
         <View style={{
           width: '100%',
@@ -2123,7 +2240,7 @@ const ProfileScreen = ({ navigation, user }) => {
           </View>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -2293,6 +2410,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   facebookButton: {
     flexDirection: 'row',
@@ -2623,11 +2741,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statusText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   emptyState: {
     flex: 1,
@@ -2891,7 +3014,14 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   contactButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 12,
     padding: 8,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   emptyState: {
     flex: 1,
@@ -2973,11 +3103,13 @@ const styles = StyleSheet.create({
     marginRight: 12, // Space between title and badge
   },
   announcementModernBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 3,
     borderRadius: 12,
-    marginLeft: 8,
-    minWidth: 80, // Ensure badge has minimum width
+    marginLeft: 'auto', // Push badge to the right
+    marginRight: 0,
+    minWidth: 36, // Ensure badge has minimum width
+    left: 65,
   },
   announcementDeleteButton: {
     position: 'absolute',
@@ -3215,13 +3347,28 @@ const styles = StyleSheet.create({
   },
   memberDeleteButton: {
     backgroundColor: '#f44336',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 8,
-    marginTop: 8,
-    width: 32,
-    height: 32,
+    marginTop: 4,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  memberStatusButton: {
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 120,
+  },
+  memberStatusButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   gmailInputModern: {
     backgroundColor: '#fff',
