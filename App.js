@@ -200,7 +200,7 @@ import Animated from 'react-native-reanimated';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { auth, db } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCredential, sendEmailVerification, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCredential, updateProfile } from 'firebase/auth';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, getDoc } from 'firebase/firestore';
 import { StatusBar as RNStatusBar } from 'expo-status-bar';
 import BSNALogo from './assets/bsna-logo.png';
@@ -370,7 +370,6 @@ const LoginScreen = ({ navigation }) => {
           createdAt: new Date().toISOString(),
           role: 'user' // Add this line to set default role
         });
-        await sendEmailVerification(userCredential.user);
         // Fetch the user document to get the role
         const membersRef = collection(db, 'members');
         const q = query(membersRef, where('email', '==', registerEmail));
@@ -410,16 +409,11 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  // Email/password login with email verification check
+  // Email/password login
   const handleLogin = async () => {
     if (email && password) {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        if (userCredential.user && !userCredential.user.emailVerified) {
-          Alert.alert('Email Not Verified', 'Please verify your email address before logging in. Check your inbox for a verification link.');
-          await sendEmailVerification(userCredential.user);
-          return;
-        }
         // Fetch the user document to get the role
         const membersRef = collection(db, 'members');
         const q = query(membersRef, where('email', '==', email));
