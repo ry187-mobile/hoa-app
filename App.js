@@ -2001,6 +2001,7 @@ const ProfileScreen = ({ navigation, user }) => {
   const [editingAddress, setEditingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState(user.address || '');
   const [pendingAddress, setPendingAddress] = useState(user.pendingAddress || '');
+  const [aboutVisible, setAboutVisible] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -2202,7 +2203,7 @@ const ProfileScreen = ({ navigation, user }) => {
                 <Ionicons name="alert-circle-outline" size={22} color="#FF9800" style={{ marginRight: 14 }} />
                 <Text style={{ fontSize: 16, color: '#222' }}>Report Center</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10 }} onPress={() => Alert.alert('About Us', 'About Us coming soon!')}>
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10 }} onPress={() => setAboutVisible(true)}>
                 <Ionicons name="information-circle-outline" size={22} color="#4CAF50" style={{ marginRight: 14 }} />
                 <Text style={{ fontSize: 16, color: '#222' }}>About Us</Text>
               </TouchableOpacity>
@@ -2211,6 +2212,35 @@ const ProfileScreen = ({ navigation, user }) => {
           )}
         </View>
 
+        {/* About Us Modal */}
+        <Modal visible={aboutVisible} animationType="slide" transparent onRequestClose={() => setAboutVisible(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <View style={{ width: '100%', maxWidth: 520, backgroundColor: '#fff', borderRadius: 16, padding: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#222', marginBottom: 8 }}>About Us</Text>
+              <Text style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>Meet the developers who built Blessed Sapphire.</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 12 }}>
+                {/* Developer 1 */}
+                <View style={{ alignItems: 'center', width: 100 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer One</Text>
+                </View>
+                {/* Developer 2 */}
+                <View style={{ alignItems: 'center', width: 100 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=12' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer Two</Text>
+                </View>
+                {/* Developer 3 */}
+                <View style={{ alignItems: 'center', width: 100 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=5' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer Three</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setAboutVisible(false)} style={{ marginTop: 18, alignSelf: 'center', backgroundColor: '#1a73e8', paddingVertical: 10, paddingHorizontal: 22, borderRadius: 10 }}>
+                <Text style={{ color: '#fff', fontWeight: '700' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         {/* Log Out Card Button */}
         <TouchableOpacity
           style={{
