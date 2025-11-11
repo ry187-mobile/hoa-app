@@ -2215,27 +2215,36 @@ const ProfileScreen = ({ navigation, user }) => {
         {/* About Us Modal */}
         <Modal visible={aboutVisible} animationType="slide" transparent onRequestClose={() => setAboutVisible(false)}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-            <View style={{ width: '100%', maxWidth: 520, backgroundColor: '#fff', borderRadius: 16, padding: 20 }}>
+            <View style={{ width: '100%', maxWidth: 560, backgroundColor: '#fff', borderRadius: 16, padding: 20 }}>
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#222', marginBottom: 8 }}>About Us</Text>
               <Text style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>Meet the developers who built Blessed Sapphire.</Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', gap: 12 }}>
+              <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {/* Developer 1 */}
-                <View style={{ alignItems: 'center', width: 100 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer One</Text>
+                <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer One</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer One description. (Edit this text in code.)</Text>
                 </View>
                 {/* Developer 2 */}
-                <View style={{ alignItems: 'center', width: 100 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=12' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer Two</Text>
+                <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=12' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Two</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Two description. (Edit this text in code.)</Text>
                 </View>
                 {/* Developer 3 */}
-                <View style={{ alignItems: 'center', width: 100 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=5' }} style={{ width: 88, height: 88, borderRadius: 44, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#222' }}>Developer Three</Text>
+                <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=5' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Three</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Three description. (Edit this text in code.)</Text>
                 </View>
-              </View>
-              <TouchableOpacity onPress={() => setAboutVisible(false)} style={{ marginTop: 18, alignSelf: 'center', backgroundColor: '#1a73e8', paddingVertical: 10, paddingHorizontal: 22, borderRadius: 10 }}>
+                {/* Developer 4 */}
+                <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=7' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Four</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Four description. (Edit this text in code.)</Text>
+                </View>
+              </ScrollView>
+              <TouchableOpacity onPress={() => setAboutVisible(false)} style={{ marginTop: 6, alignSelf: 'center', backgroundColor: '#1a73e8', paddingVertical: 10, paddingHorizontal: 22, borderRadius: 10 }}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>Close</Text>
               </TouchableOpacity>
             </View>
