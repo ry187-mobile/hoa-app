@@ -1315,12 +1315,12 @@ const AnnouncementsScreen = ({ user }) => {
 
       await addDoc(collection(db, 'announcements'), announcementData);
       
-      setShowAddModal(false);
-      setNewTitle('');
-      setNewContent('');
-      setNewPriority('medium');
-      fetchAnnouncements();
-      Alert.alert('Success', 'Announcement added!');
+  setShowAddModal(false);
+  setNewTitle('');
+  setNewContent('');
+  setNewPriority('medium');
+  // onSnapshot listener will pick up the new announcement; no need to fetch manually
+  Alert.alert('Success', 'Announcement added!');
     } catch (error) {
       console.error('Error adding announcement:', error);
       Alert.alert('Error', 'Failed to add announcement');
@@ -1330,9 +1330,9 @@ const AnnouncementsScreen = ({ user }) => {
   // Delete announcement
   const handleDeleteAnnouncement = async (id) => {
     try {
-      await deleteDoc(doc(db, 'announcements', id));
-      fetchAnnouncements();
-      Alert.alert('Deleted', 'Announcement deleted');
+  await deleteDoc(doc(db, 'announcements', id));
+  // onSnapshot listener updates announcements automatically
+  Alert.alert('Deleted', 'Announcement deleted');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete announcement');
     }
