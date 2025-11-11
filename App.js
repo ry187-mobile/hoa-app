@@ -758,6 +758,7 @@ const EventsScreen = ({ user }) => {
         location: newLocation,
         description: newDescription,
         type: newType,
+          status: 'Upcoming',
       };
 
       await addDoc(collection(db, 'events'), eventData);

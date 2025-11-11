@@ -93,10 +93,8 @@ function DashboardPage() {
     const unsubOpen = onSnapshot(query(collection(db, 'requests'), where('status', '==', 'Pending')), snap => {
       setOpenIssues(snap.size);
     });
-    // Upcoming Events
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const unsubEvents = onSnapshot(query(collection(db, 'events'), where('date', '>=', today.toISOString().slice(0,10))), snap => {
+    // Upcoming Events (use status to reflect admin toggles reliably)
+    const unsubEvents = onSnapshot(query(collection(db, 'events'), where('status', '==', 'Upcoming')), snap => {
       setUpcomingEvents(snap.size);
     });
     // Members
