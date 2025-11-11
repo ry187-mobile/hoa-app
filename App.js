@@ -2221,27 +2221,27 @@ const ProfileScreen = ({ navigation, user }) => {
               <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {/* Developer 1 */}
                 <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer One</Text>
-                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer One description. (Edit this text in code.)</Text>
+                  <Image source={require('./assets/dev-oguri.png')} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Ry Torilla</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Full Stack Developer</Text>
                 </View>
                 {/* Developer 2 */}
                 <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=12' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Two</Text>
-                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Two description. (Edit this text in code.)</Text>
+                  <Image source={require('./assets/dev-clifford.jpg')} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Clifford Alon</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Project Manager</Text>
                 </View>
                 {/* Developer 3 */}
                 <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=5' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Three</Text>
-                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Three description. (Edit this text in code.)</Text>
+                  <Image source={require('./assets/dev-antigo.jpg')} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>John Lois Antigo</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>QA Engineer/Tester</Text>
                 </View>
                 {/* Developer 4 */}
                 <View style={{ alignItems: 'center', width: '48%', marginBottom: 18 }}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?img=7' }} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Developer Four</Text>
-                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>Developer Four description. (Edit this text in code.)</Text>
+                  <Image source={require('./assets/dev-jern.jpg')} style={{ width: 96, height: 96, borderRadius: 48, marginBottom: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#222' }}>Jernalyn Samosa</Text>
+                  <Text style={{ fontSize: 13, color: '#666', textAlign: 'center', marginTop: 6 }}>System Analyst</Text>
                 </View>
               </ScrollView>
               <TouchableOpacity onPress={() => setAboutVisible(false)} style={{ marginTop: 6, alignSelf: 'center', backgroundColor: '#1a73e8', paddingVertical: 10, paddingHorizontal: 22, borderRadius: 10 }}>
