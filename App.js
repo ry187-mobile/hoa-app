@@ -7,6 +7,7 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
   // State for requests data
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState(null);
   
   // DashboardScreen real-time requests
   useEffect(() => {
@@ -25,7 +26,9 @@ const DashboardScreen = ({ navigation, events = [], user }) => {
 
   // Calculate dashboard data from real requests
 const openIssues = requests.filter(request => request.status === 'Pending').length;
-const upcomingEvents = events.length;
+
+// upcomingEvents is driven by a real-time listener below (status == 'Upcoming')
+
 
   // Get recent requests (latest 3) and format them for display
   const recentIssues = requests.slice(0, 3).map(request => ({
@@ -62,6 +65,20 @@ const upcomingEvents = events.length;
       console.error('Error listening to announcements:', error);
     });
 
+    return () => unsubscribe();
+  }, []);
+
+  // Real-time listener for upcoming events (status == 'Upcoming')
+  useEffect(() => {
+    // listen for events with status 'Upcoming' so dashboard updates immediately
+    const eventsRef = collection(db, 'events');
+    const q = query(eventsRef, where('status', '==', 'Upcoming'));
+    const unsubscribe = onSnapshot(q, snap => {
+      setUpcomingEvents(snap.size);
+    }, error => {
+      console.error('Upcoming events snapshot error:', error);
+      setUpcomingEvents(0);
+    });
     return () => unsubscribe();
   }, []);
 
