@@ -3154,13 +3154,19 @@ const styles = StyleSheet.create({
     marginRight: 12, // Space between title and badge
   },
   announcementModernBadge: {
-    paddingHorizontal: 20,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
-    marginLeft: 'auto', // Push badge to the right
+    marginLeft: 8,
     marginRight: 0,
     minWidth: 36, // Ensure badge has minimum width
-    left: 65,
+    alignSelf: 'flex-start',
+  },
+
+  announcementModernBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   announcementDeleteButton: {
     position: 'absolute',
