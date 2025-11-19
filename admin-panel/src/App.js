@@ -170,10 +170,18 @@ function DashboardPage() {
     setLoadingEndedEvents(true);
     const today = new Date();
     today.setHours(0,0,0,0);
+   //Listen sa na mark ng admin na ended, then fetch to the recent event ended.
     const unsub = onSnapshot(
-      query(collection(db, 'events'), where('date', '<', today.toISOString().slice(0,10)), orderBy('date', 'desc'), limit(3)),
+      query(collection(db, 'events'), where('status', '==', 'Ended')),
       snap => {
-        setRecentEndedEvents(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // sort by date desc (handle missing dates)
+        docs.sort((a, b) => {
+          const da = a.date ? new Date(a.date) : new Date(0);
+          const db_ = b.date ? new Date(b.date) : new Date(0);
+          return db_ - da;
+        });
+        setRecentEndedEvents(docs.slice(0, 3));
         setLoadingEndedEvents(false);
       },
       error => {

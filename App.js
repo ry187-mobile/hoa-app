@@ -517,16 +517,6 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 
-        {/* Google Login Button */}
-        <TouchableOpacity
-          style={[styles.facebookButton, { backgroundColor: '#4285f4', borderWidth: 1, borderColor: '#e0e0e0', marginTop: 16 }]}
-          onPress={() => promptAsync()}
-          disabled={!request}
-        >
-          <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png' }} style={{ width: 28, height: 28, marginRight: 10, borderRadius: 4, backgroundColor: '#4285f4' }} />
-          <Text style={[styles.facebookButtonText, { color: '#fff' }]}>Continue with Google</Text>
-        </TouchableOpacity>
-
         {/* Register Button */}
         <TouchableOpacity style={styles.registerButton} onPress={() => setShowRegister(true)}>
           <Text style={styles.registerButtonText}>Register?</Text>
@@ -1793,12 +1783,14 @@ const MembersScreen = ({ user }) => {
             >
               <Ionicons name="refresh" size={24} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.addMemberButton} 
-              onPress={() => setShowAddMemberModal(true)}
-            >
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
+            {user?.role === 'admin' && (
+              <TouchableOpacity 
+                style={styles.addMemberButton} 
+                onPress={() => setShowAddMemberModal(true)}
+              >
+                <Ionicons name="add" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -3158,7 +3150,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     marginLeft: 8,
-    marginRight: 0,
+    marginRight: -68,
     minWidth: 36, // Ensure badge has minimum width
     alignSelf: 'flex-start',
   },
@@ -3270,7 +3262,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     marginLeft: 8,
-    minWidth: 80, // Ensure badge has minimum width
+    marginRight: -68,
+    minWidth: 50, // Ensure badge has minimum width
   },
   eventModernBadgeText: {
     color: '#fff',
