@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, CssBaseline, Box, Container, ThemeProvider, createTheme, Avatar, Divider, IconButton, InputBase, Paper, Button, Stack, Badge, CircularProgress } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventIcon from '@mui/icons-material/Event';
@@ -175,10 +175,10 @@ function DashboardPage() {
       query(collection(db, 'events'), where('status', '==', 'Ended')),
       snap => {
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // sort by date desc (handle missing dates)
+        // sort by endedAt desc, fallback to date if endedAt not present
         docs.sort((a, b) => {
-          const da = a.date ? new Date(a.date) : new Date(0);
-          const db_ = b.date ? new Date(b.date) : new Date(0);
+          const da = a.endedAt ? new Date(a.endedAt) : (a.date ? new Date(a.date) : new Date(0));
+          const db_ = b.endedAt ? new Date(b.endedAt) : (b.date ? new Date(b.date) : new Date(0));
           return db_ - da;
         });
         setRecentEndedEvents(docs.slice(0, 3));
@@ -344,7 +344,11 @@ function EventsPage() {
     setActionLoading(l => ({ ...l, [id]: true }));
     try {
       const newStatus = currentStatus === 'Upcoming' ? 'Ended' : 'Upcoming';
-      await updateDoc(doc(db, 'events', id), { status: newStatus });
+      if (newStatus === 'Ended') {
+        await updateDoc(doc(db, 'events', id), { status: newStatus, endedAt: new Date().toISOString() });
+      } else {
+        await updateDoc(doc(db, 'events', id), { status: newStatus, endedAt: null });
+      }
     } finally {
       setActionLoading(l => ({ ...l, [id]: false }));
     }
