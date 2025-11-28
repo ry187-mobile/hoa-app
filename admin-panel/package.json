@@ -23,6 +23,7 @@
     "cross-env": "^7.0.3",
     "electron": "^26.6.10",
     "electron-builder": "^24.13.3",
+    "rimraf": "^5.0.10",
     "wait-on": "^7.2.0"
   },
   "main": "electron.js",
@@ -31,8 +32,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron:dev": "concurrently \"npm:start\" \"cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
+    "electron:dev": "concurrently \"npm:start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
     "electron:build": "npm run build && electron-builder --publish never",
+    "clean": "rimraf dist",
     "electron:package": "npm run build && electron-builder"
   },
   "build": {
@@ -48,10 +50,14 @@
       "buildResources": "assets"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "mac": {
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     }
   },
   "eslintConfig": {
