@@ -66,6 +66,8 @@ const theme = createTheme({
   },
 });
 
+const bsnaLogoSrc = process.env.PUBLIC_URL + '/bsna-logo.png';
+
 const navItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Events', icon: <EventIcon />, path: '/events' },
@@ -729,7 +731,7 @@ function CustomAppBar() {
     <AppBar position="fixed" color="primary" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/bsna-logo.png" alt="BSNA Logo" style={{ width: 40, height: 40, marginRight: 16, borderRadius: 8, objectFit: 'contain', background: '#fff' }} />
+          <img src={bsnaLogoSrc} alt="BSNA Logo" style={{ width: 40, height: 40, marginRight: 16, borderRadius: 8, objectFit: 'contain', background: '#fff' }} />
           <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, letterSpacing: 1 }}>
             Blessed Sapphire Admin
           </Typography>
@@ -824,7 +826,7 @@ function CustomDrawer() {
         <Box sx={{ textAlign: 'center', py: 2 }}>
           <Box sx={{ bgcolor: '#fff', borderRadius: 3, px: 3, py: 3, display: 'inline-block', mb: 1, minWidth: 140 }}>
             <Box sx={{ bgcolor: '#fff', borderRadius: '50%', width: 110, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 1 }}>
-              <img src="/bsna-logo.png" alt="BSNA Logo" style={{ width: 80, height: 80, borderRadius: '50%', display: 'block', background: 'none', objectFit: 'contain' }} />
+              <img src={bsnaLogoSrc} alt="BSNA Logo" style={{ width: 80, height: 80, borderRadius: '50%', display: 'block', background: 'none', objectFit: 'contain' }} />
             </Box>
             <Typography variant="subtitle1" sx={{ color: '#222', fontWeight: 700, mt: 1 }}>Blessed Sapphire</Typography>
           </Box>
