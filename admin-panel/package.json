@@ -35,6 +35,7 @@
     "electron:dev": "concurrently \"npm:start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
     "electron:build": "npm run build && electron-builder --publish never",
     "clean": "rimraf dist",
+    "preelectron:build": "node ./scripts/killRunningApp.js",
     "electron:package": "npm run build && electron-builder"
   },
   "build": {
