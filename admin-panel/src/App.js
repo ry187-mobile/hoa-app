@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, CssBaseline, Box, Container, ThemeProvider, createTheme, Avatar, Divider, IconButton, InputBase, Paper, Button, Stack, Badge, CircularProgress } from '@mui/material';
+import { AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, CssBaseline, Box, Container, ThemeProvider, createTheme, Avatar, Divider, IconButton, InputBase, Paper, Button, Stack, Badge, CircularProgress, Select, MenuItem } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventIcon from '@mui/icons-material/Event';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -15,8 +15,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import BuildIcon from '@mui/icons-material/Build';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
-import { db, auth } from './firebase';
-import { collection, getCountFromServer, query, where, getDocs, orderBy, limit, Timestamp, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from './firebase';
+import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const drawerWidth = 220;
 
@@ -86,7 +86,6 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadingResolved, setLoadingResolved] = useState(true);
   const [loadingEndedEvents, setLoadingEndedEvents] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -308,6 +307,7 @@ function DashboardPage() {
   );
 }
 
+
 function timeAgo(dateStr) {
   const date = new Date(dateStr);
   const now = new Date();
@@ -356,6 +356,8 @@ function EventsPage() {
     }
   };
 
+  
+
   const handleDelete = async (id) => {
     setActionLoading(l => ({ ...l, [id]: true }));
     try {
@@ -364,6 +366,12 @@ function EventsPage() {
       setActionLoading(l => ({ ...l, [id]: false }));
     }
   };
+
+  
+
+  
+
+  
 
   return (
     <Box sx={{ p: 3 }}>
@@ -643,6 +651,23 @@ function MembersPage() {
     }
   };
 
+    const handleRoleChange = async (id, newRole) => {
+      setActionLoading(prev => ({ ...prev, [id]: true }));
+      try {
+        await updateDoc(doc(db, 'members', id), { role: newRole });
+        try {
+          await updateDoc(doc(db, 'users', id), { role: newRole });
+        } catch (e) {
+          console.log('users document not found for', id);
+        }
+      } catch (error) {
+        console.error('Failed to update role for member', id, error);
+        alert('Failed to change role. Please try again.');
+      } finally {
+        setActionLoading(prev => ({ ...prev, [id]: false }));
+      }
+    };
+
   const filtered = members.filter(m => {
     const q = search.toLowerCase();
     return (
@@ -674,6 +699,19 @@ function MembersPage() {
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{mem.firstName || ''} {mem.lastName || ''}</Typography>
                   <Typography color="text.secondary" sx={{ fontSize: 14 }}>{mem.email || ''}</Typography>
                   <Typography color="secondary" sx={{ fontSize: 13, mt: 0.5 }}>Home: {mem.homeNumber || ''}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Select
+                    value={mem.role || 'user'}
+                    onChange={e => handleRoleChange(mem.id, e.target.value)}
+                    size="small"
+                    disabled={!!actionLoading[mem.id]}
+                    sx={{ minWidth: 110 }}
+                  >
+                    <MenuItem value="user">User</MenuItem>
+                    <MenuItem value="admin">Admin</MenuItem>
+                  </Select>
+                  {actionLoading[mem.id] && <CircularProgress size={18} />}
                 </Box>
                 <Button
                   variant="outlined"

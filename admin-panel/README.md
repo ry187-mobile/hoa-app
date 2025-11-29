@@ -68,3 +68,30 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Electron Desktop Build (Admin Panel)
+
+This project can be packaged as a desktop app using Electron. There are two custom scripts:
+
+- `npm run electron:dev` - Starts the CRA development server and opens the app in an Electron window for development.
+- `npm run electron:build` - Builds the React app and packages the Electron app using `electron-builder` (no publish by default).
+
+Before running these scripts, install dev dependencies in the `admin-panel` folder:
+
+```powershell
+cd admin-panel
+npm install
+```
+
+Dev (hot reload):
+```powershell
+npm run electron:dev
+```
+
+Build packaged app:
+```powershell
+npm run electron:build
+```
+
+Packaging may require platform-specific tools for code signing and building (e.g., NSIS), and you can add icons into `admin-panel/assets` and update `package.json` build config.
+
