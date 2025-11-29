@@ -1,8 +1,8 @@
 {
   "expo": {
     "owner": "ry187-mobile",
-    "name": "HOAApp",
-    "slug": "HOAApp",
+    "name": "Blessed Sapphire",
+    "slug": "blessed-sapphire",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,7 +33,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.HOAApp"
+      "package": "com.anonymous.blessedsapphire"
     },
     "web": {
       "favicon": "./assets/favicon.png"
